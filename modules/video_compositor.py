@@ -3,7 +3,7 @@ import subprocess
 import random
 import shutil
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Tuple
 from PIL import Image, ImageDraw, ImageFont
 from config import VIDEOS_DIR, ASSETS_DIR, FONTS_DIR, AUDIO_SFX_DIR, CACHE_DIR
 from modules.database import db
