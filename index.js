@@ -63,8 +63,22 @@ try {
   }
 }
 
-// 4. Install / Verify Python Dependencies
-console.log("\n[*] Verifying Python application dependencies...");
+// 4. Clean Disk Space & Install / Verify Python Dependencies
+console.log("\n[*] Checking disk optimization and Python dependencies...");
+
+// Purge any pip cache or leftover extraction zips to free container disk space
+try {
+  execSync(`${pythonCmd} -m pip cache purge`, { stdio: 'ignore' });
+} catch (e) {}
+
+const strayZip = path.join(__dirname, 'cybershorts-vps-deploy.zip');
+if (fs.existsSync(strayZip)) {
+  try {
+    fs.unlinkSync(strayZip);
+    console.log("[+] Removed leftover deployment zip to free disk space.");
+  } catch (e) {}
+}
+
 let depsReady = false;
 try {
   execSync(`${pythonCmd} -c "import schedule, requests, edge_tts, PIL, uvicorn, fastapi"`, { stdio: 'ignore' });
@@ -77,17 +91,26 @@ try {
 if (!depsReady) {
   const reqFile = path.join(__dirname, 'requirements.txt');
   if (fs.existsSync(reqFile)) {
-    console.log("[*] Installing required packages from requirements.txt...");
+    console.log("[*] Installing required packages from requirements.txt (--no-cache-dir for low disk footprint)...");
     try {
-      execSync(`${pythonCmd} -m pip install -r "${reqFile}" --break-system-packages --no-warn-script-location`, { stdio: 'inherit' });
+      execSync(`${pythonCmd} -m pip install --no-cache-dir -r "${reqFile}" --break-system-packages --no-warn-script-location`, { stdio: 'inherit' });
       console.log("[+] Dependencies installed successfully!");
     } catch (err1) {
-      console.log("[*] Retrying pip install with --user flag...");
+      console.log("[*] Retrying pip install with --user and --no-cache-dir...");
       try {
-        execSync(`${pythonCmd} -m pip install --user -r "${reqFile}" --break-system-packages --no-warn-script-location`, { stdio: 'inherit' });
+        execSync(`${pythonCmd} -m pip install --no-cache-dir --user -r "${reqFile}" --break-system-packages --no-warn-script-location`, { stdio: 'inherit' });
         console.log("[+] Dependencies installed successfully via --user!");
       } catch (err2) {
-        console.error("[!] Dependency installation encountered an error:", err2.message);
+        console.warn("[!] Full requirements install had issues. Installing critical core packages individually...");
+        const corePackages = ['schedule', 'python-dotenv', 'requests', 'fastapi', 'uvicorn', 'jinja2', 'edge-tts', 'pillow', 'feedparser', 'beautifulsoup4'];
+        for (const pkg of corePackages) {
+          try {
+            execSync(`${pythonCmd} -m pip install --no-cache-dir --user ${pkg} --break-system-packages --no-warn-script-location`, { stdio: 'ignore' });
+            console.log(`    [+] Core package ready: ${pkg}`);
+          } catch (pkgErr) {
+            console.warn(`    [!] Could not install ${pkg}: ${pkgErr.message}`);
+          }
+        }
       }
     }
   } else {

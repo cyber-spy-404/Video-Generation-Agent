@@ -1,24 +1,24 @@
-# Core Framework & Async
+# Core Scheduler & Utilities (Installed First)
+schedule>=1.2.1
+python-dotenv>=1.0.1
+requests>=2.31.0
+aiohttp>=3.9.3
+
+# Web Server & API Dashboard
 fastapi>=0.110.0
 uvicorn>=0.28.0
 jinja2>=3.1.3
-python-dotenv>=1.0.1
 pydantic>=2.6.0
-requests>=2.31.0
-aiohttp>=3.9.3
-schedule>=1.2.1
 
-# News & Trend Scraping
+# News & Trend Intelligence
 feedparser>=6.0.11
 beautifulsoup4>=4.12.3
 
-# AI Voice & Audio Engine (100% Free - No API Key Required)
+# AI Neural Speech Engine (100% Free - No API Key Required)
 edge-tts>=6.1.12
 
-# Video Processing & Synthesis
-moviepy>=1.0.3
+# Video Processing & Canvas Rendering (Zero Bloat: Uses System FFmpeg & Pillow)
 pillow>=10.2.0
-numpy>=1.24.0
 yt-dlp>=2024.1.0
 
 # Google Services: YouTube Studio & Google Sheets
