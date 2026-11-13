@@ -3,37 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Autonomous AI Video Automation Engine for Cybersecurity, Tech and Penetration Testing Shorts">
-  <title>CyberShorts AI - VPS Mission Control</title>
+  <meta name="description" content="CyberShorts AI - Autonomous Web Mission Control & Multi-Platform Publishing Studio for Frontier AI & Cybersecurity Shorts">
+  <title>CyberShorts AI - Web Mission Control</title>
   
   <style>
+    /* =====================================================================
+       DESIGN TOKEN ARCHITECTURE (Unified Cyberpunk Dark Design System)
+       ===================================================================== */
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       
+      /* Surface Elevation Hierarchy */
       --color-bg: #050811;
       --color-surface-base: #090e1a;
       --color-surface-elevated: rgba(16, 26, 46, 0.85);
       --color-surface-card: rgba(12, 20, 36, 0.70);
       --color-surface-hover: rgba(22, 36, 64, 0.60);
+      --color-surface-inset: #03060c;
       
+      /* Structural Borders & Translucent Rings */
       --color-border-subtle: rgba(255, 255, 255, 0.08);
+      --color-border-hover: rgba(255, 255, 255, 0.16);
       --color-border-strong: rgba(0, 229, 255, 0.35);
+      --color-border-focus: #00e5ff;
       
+      /* High-Contrast Typography */
       --color-text-primary: #f8fafc;
       --color-text-secondary: #94a3b8;
       --color-text-muted: #64748b;
       
+      /* Cyber Brand Accents */
       --color-brand-cyan: #00e5ff;
-      --color-brand-red: #ef4444;
       --color-brand-green: #10b981;
       --color-brand-yellow: #f59e0b;
+      --color-brand-red: #ef4444;
+      --color-brand-purple: #e879f9;
+      --color-brand-blue: #3b82f6;
       
+      /* Concentric Border Radii: R_outer = R_inner + padding + border */
       --radius-sm: 6px;
       --radius-md: 10px;
-      --radius-lg: 16px;
+      --radius-lg: 14px;
       --radius-card: 18px;
+      --radius-modal: 20px;
+      --radius-pill: 9999px;
       
+      /* 4pt / 8pt Strict Spacing Scale */
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -41,6 +57,12 @@
       --space-5: 20px;
       --space-6: 24px;
       --space-8: 32px;
+      --space-10: 40px;
+
+      /* Motion Transitions */
+      --motion-timing: cubic-bezier(0.16, 1, 0.3, 1);
+      --motion-fast: 150ms var(--motion-timing);
+      --motion-normal: 250ms var(--motion-timing);
     }
 
     *, *::before, *::after {
@@ -60,12 +82,27 @@
       flex-direction: column;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      background-image: 
+        radial-gradient(ellipse at top center, rgba(0, 229, 255, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
+      background-attachment: fixed;
     }
 
+    /* Anti-Jitter Tabular Monospace Metrics */
     .tabular {
       font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
     }
 
+    /* Focus Indicators */
+    :focus-visible {
+      outline: 2px solid var(--color-border-focus);
+      outline-offset: 2px;
+    }
+
+    /* =====================================================================
+       HEADER NAVIGATION & STATUS BAR
+       ===================================================================== */
     .app-header {
       background-color: var(--color-surface-base);
       border-bottom: 1px solid var(--color-border-subtle);
@@ -78,7 +115,8 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
 
     .brand-group {
@@ -88,21 +126,22 @@
     }
 
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       border-radius: var(--radius-md);
       background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 18px;
+      font-size: 20px;
       color: #050811;
-      box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.35);
+      flex-shrink: 0;
     }
 
     .brand-title {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 700;
       letter-spacing: -0.02em;
       text-wrap: balance;
@@ -111,37 +150,92 @@
     .brand-subtitle {
       font-size: 12px;
       color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    /* Live Clocks Pill */
+    .clock-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--color-border-subtle);
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .clock-pill span {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    /* Interactive Publishing Toggle Pill */
     .status-pill {
       display: inline-flex;
       align-items: center;
       gap: var(--space-2);
-      padding: 4px 12px;
-      border-radius: 9999px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: var(--color-brand-green);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
       font-size: 13px;
       font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all var(--motion-fast);
+      touch-action: manipulation;
+    }
+
+    .status-pill:active {
+      transform: scale(0.96);
+    }
+
+    .status-pill-active {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: var(--color-brand-green);
+    }
+    .status-pill-active:hover {
+      background: rgba(16, 185, 129, 0.20);
+    }
+
+    .status-pill-paused {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: var(--color-brand-yellow);
+    }
+    .status-pill-paused:hover {
+      background: rgba(245, 158, 11, 0.20);
     }
 
     .status-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background-color: var(--color-brand-green);
-      box-shadow: 0 0 8px var(--color-brand-green);
+      background-color: currentColor;
+      box-shadow: 0 0 8px currentColor;
       animation: pulse 2s infinite;
     }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
     }
 
+    /* =====================================================================
+       MAIN LAYOUT CONTAINER
+       ===================================================================== */
     .main-content {
-      max-width: 1300px;
+      max-width: 1360px;
       margin: 0 auto;
       padding: var(--space-6);
       width: 100%;
@@ -150,7 +244,223 @@
       gap: var(--space-6);
     }
 
-    /* Actions Bar */
+    /* =====================================================================
+       DUAL-TIMEZONE LIVE TELEMETRY STRIP
+       ===================================================================== */
+    .schedule-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .schedule-card {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-card);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .schedule-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+    }
+
+    .schedule-card-yt::before {
+      background: linear-gradient(90deg, #ef4444, #f59e0b);
+    }
+    .schedule-card-ig::before {
+      background: linear-gradient(90deg, #e879f9, #3b82f6);
+    }
+    .schedule-card-balance::before {
+      background: linear-gradient(90deg, #00e5ff, #10b981);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .countdown-display {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--color-text-primary);
+    }
+
+    .card-detail {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card-detail strong {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    /* =====================================================================
+       INTERACTIVE ON-DEMAND CREATOR STUDIO
+       ===================================================================== */
+    .creator-panel {
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-card);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      box-shadow: 0 8px 32px rgba(0, 229, 255, 0.08);
+      position: relative;
+    }
+
+    .creator-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .creator-title-group h2 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .creator-title-group p {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+    }
+
+    .creator-form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .input-row {
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+    }
+
+    .input-field-group {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .input-text {
+      width: 100%;
+      background: var(--color-surface-inset);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+    }
+
+    .input-text:focus {
+      border-color: var(--color-brand-cyan);
+      box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.15);
+      outline: none;
+    }
+
+    .select-dropdown {
+      background: var(--color-surface-inset);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 220px;
+    }
+
+    .select-dropdown:focus {
+      border-color: var(--color-brand-cyan);
+      outline: none;
+    }
+
+    .creator-presets {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--color-text-muted);
+    }
+
+    .preset-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: 12px;
+      transition: all var(--motion-fast);
+    }
+    .preset-pill:hover {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--color-brand-cyan);
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+
+    /* Notification Banner */
+    .toast-banner {
+      display: none;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      align-items: center;
+      gap: var(--space-2);
+      animation: fadeIn 200ms ease-out;
+    }
+
+    .toast-banner-success {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+
+    /* =====================================================================
+       BUTTONS & CONTROL AFFORDANCES
+       ===================================================================== */
     .actions-bar {
       display: flex;
       flex-wrap: wrap;
@@ -181,17 +491,12 @@
       cursor: pointer;
       border: 1px solid transparent;
       text-decoration: none;
-      transition: background-color 150ms ease, transform 150ms ease, border-color 150ms ease;
+      transition: background-color var(--motion-fast), transform var(--motion-fast), border-color var(--motion-fast);
       touch-action: manipulation;
     }
 
     .btn:active {
       transform: scale(0.96);
-    }
-
-    .btn:focus-visible {
-      outline: 2px solid var(--color-brand-cyan);
-      outline-offset: 2px;
     }
 
     .btn-primary {
@@ -201,6 +506,7 @@
     }
     .btn-primary:hover {
       background: #33ebff;
+      box-shadow: 0 6px 18px rgba(0, 229, 255, 0.35);
     }
 
     .btn-secondary {
@@ -210,31 +516,40 @@
     }
     .btn-secondary:hover {
       background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--color-border-hover);
     }
 
     .btn-sheet {
-      background: rgba(16, 185, 129, 0.15);
+      background: rgba(16, 185, 129, 0.12);
       border: 1px solid rgba(16, 185, 129, 0.35);
       color: #34d399;
     }
     .btn-sheet:hover {
-      background: rgba(16, 185, 129, 0.25);
+      background: rgba(16, 185, 129, 0.22);
     }
 
     .btn-youtube {
-      background: rgba(239, 68, 68, 0.15);
+      background: rgba(239, 68, 68, 0.12);
       border: 1px solid rgba(239, 68, 68, 0.35);
       color: #f87171;
     }
     .btn-youtube:hover {
-      background: rgba(239, 68, 68, 0.25);
+      background: rgba(239, 68, 68, 0.22);
+    }
+
+    .btn-pause {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+    .btn-pause:hover {
+      background: rgba(245, 158, 11, 0.22);
     }
 
     /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-4);
     }
 
@@ -250,11 +565,11 @@
     }
 
     .stat-label {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--color-text-secondary);
-      font-weight: 500;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
     }
 
     .stat-value {
@@ -264,7 +579,9 @@
       color: var(--color-text-primary);
     }
 
-    /* Sections */
+    /* =====================================================================
+       VIDEO QUEUE & MANAGEMENT DATA TABLE
+       ===================================================================== */
     .section-card {
       background: var(--color-surface-card);
       border: 1px solid var(--color-border-subtle);
@@ -291,7 +608,6 @@
       text-wrap: balance;
     }
 
-    /* Responsive Data Table */
     .table-container {
       overflow-x: auto;
       border-radius: var(--radius-md);
@@ -339,6 +655,7 @@
       border-radius: var(--radius-sm);
       font-size: 12px;
       font-weight: 600;
+      white-space: nowrap;
     }
 
     .badge-status-completed {
@@ -347,19 +664,25 @@
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .badge-status-rendering, .badge-status-scripting {
+    .badge-status-rendering, .badge-status-scripting, .badge-status-voice_synthesis {
       background: rgba(245, 158, 11, 0.15);
       color: #fbbf24;
       border: 1px solid rgba(245, 158, 11, 0.3);
     }
 
-    .badge-status-error {
+    .badge-status-error, .badge-status-failed {
       background: rgba(239, 68, 68, 0.15);
       color: #f87171;
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    /* Links inside table */
+    .badge-category {
+      background: rgba(59, 130, 246, 0.12);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    /* Link Pills in Table */
     .link-pill {
       display: inline-flex;
       align-items: center;
@@ -372,51 +695,55 @@
       background: rgba(255, 255, 255, 0.06);
       color: var(--color-text-primary);
       border: 1px solid var(--color-border-subtle);
-      transition: background 150ms ease;
+      transition: background var(--motion-fast);
+      cursor: pointer;
     }
     .link-pill:hover {
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
     }
 
-    /* Empty State */
-    .empty-state {
-      padding: var(--space-8) var(--space-4);
+    .btn-preview {
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: var(--color-brand-cyan);
+    }
+    .btn-preview:hover {
+      background: rgba(0, 229, 255, 0.22);
+    }
+
+    /* =====================================================================
+       LIVE TELEMETRY & TERMINAL LOGS
+       ===================================================================== */
+    .terminal-controls {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      text-align: center;
-      gap: var(--space-3);
+      gap: var(--space-2);
     }
 
-    .empty-icon {
-      font-size: 48px;
-      opacity: 0.8;
-      margin-bottom: var(--space-2);
-    }
-
-    .empty-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--color-text-primary);
-    }
-
-    .empty-desc {
-      font-size: 14px;
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 4px 10px;
       color: var(--color-text-secondary);
-      max-width: 440px;
-      text-wrap: pretty;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--motion-fast);
+    }
+    .filter-btn.active {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--color-brand-cyan);
+      border-color: rgba(0, 229, 255, 0.35);
     }
 
-    /* Terminal Logs */
     .terminal-window {
-      background: #03060c;
+      background: var(--color-surface-inset);
       border: 1px solid var(--color-border-subtle);
       border-radius: var(--radius-md);
       padding: var(--space-4);
       font-family: var(--font-mono);
       font-size: 13px;
-      max-height: 260px;
+      max-height: 280px;
       overflow-y: auto;
       overscroll-behavior: contain;
       display: flex;
@@ -449,11 +776,139 @@
     .log-error .log-msg {
       color: #f87171;
     }
+    .log-warning .log-msg {
+      color: #fbbf24;
+    }
+
+    /* =====================================================================
+       VIDEO PREVIEW MODAL (Accessible & Focus Trapped)
+       ===================================================================== */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(3, 6, 12, 0.85);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-4);
+      overscroll-behavior: contain;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-dialog {
+      background: var(--color-surface-base);
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-modal);
+      max-width: 900px;
+      width: 100%;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      animation: modalEnter 200ms ease-out;
+    }
+
+    @keyframes modalEnter {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      padding: var(--space-4) var(--space-6);
+      border-bottom: 1px solid var(--color-border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .btn-close {
+      background: transparent;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+    .btn-close:hover {
+      color: var(--color-text-primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-body {
+      padding: var(--space-6);
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: var(--space-6);
+      overflow-y: auto;
+    }
+
+    .video-frame-container {
+      width: 100%;
+      aspect-ratio: 9/16;
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .video-frame-container video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .modal-details {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .detail-card {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .detail-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .detail-text {
+      font-size: 14px;
+      color: var(--color-text-primary);
+      line-height: 1.4;
+    }
 
     /* Responsive */
-    @media (max-width: 768px) {
-      .main-content {
-        padding: var(--space-4);
+    @media (max-width: 820px) {
+      .modal-body {
+        grid-template-columns: 1fr;
+      }
+      .video-frame-container {
+        max-width: 260px;
+        margin: 0 auto;
       }
       .actions-bar {
         flex-direction: column;
@@ -477,73 +932,191 @@
 </head>
 <body>
 
-  <!-- Header -->
+  <!-- Top App Navigation & Status Header -->
   <header class="app-header">
     <div class="brand-group">
       <div class="brand-icon">⚡</div>
       <div>
-        <h1 class="brand-title">CyberShorts AI Engine</h1>
-        <p class="brand-subtitle">Autonomous Tech, Pentesting & Cybersecurity Pipeline</p>
+        <h1 class="brand-title">CyberShorts AI Mission Control</h1>
+        <p class="brand-subtitle">
+          <span>Autonomous Dual-Timezone Video Production Studio</span>
+          <span>•</span>
+          <span class="tabular">v2.0.0</span>
+        </p>
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span class="status-pill">
+    <div class="header-actions">
+      <!-- Live Timezone Clocks -->
+      <div class="clock-pill">
+        <div>UTC: <span id="clock-utc" class="tabular">--:--:--</span></div>
+        <div>•</div>
+        <div>IST: <span id="clock-ist" class="tabular">--:--:--</span></div>
+      </div>
+
+      <!-- Interactive Global Publishing Toggle Pill -->
+      <button 
+        id="btn-toggle-pause" 
+        class="status-pill {% if state.paused %}status-pill-paused{% else %}status-pill-active{% endif %}"
+        onclick="togglePublishingState()"
+        aria-label="Toggle autonomous social publishing state"
+      >
         <span class="status-dot"></span>
-        VPS Engine Online
-      </span>
+        <span id="text-publishing-status">
+          {% if state.paused %}⏸️ PAUSED (Holding in Storage){% else %}🟢 ACTIVE (Auto-Publishing){% endif %}
+        </span>
+      </button>
+
+      <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sheet" title="Open Google Sheet">
+        📊 Sheet
+      </a>
     </div>
   </header>
 
   <!-- Main View -->
   <main class="main-content">
 
-    <!-- Actions Control Bar -->
-    <section class="actions-bar" aria-label="Action Controls">
-      <div class="btn-group">
-        <button id="btn-run" class="btn btn-primary" onclick="triggerRun()">
-          🚀 Run Pipeline Now
-        </button>
-        <button id="btn-scrape" class="btn btn-secondary" onclick="triggerScrape()">
-          🔍 Scrape Trends Only
-        </button>
+    <!-- 1. Interactive On-Demand Creator Studio -->
+    <section class="creator-panel" aria-label="On Demand Video Studio">
+      <div class="creator-header">
+        <div class="creator-title-group">
+          <h2>🎬 Custom Prompt & On-Demand Video Studio</h2>
+          <p>Generate a customized dual-language video (English + Hindi/Hinglish) on any topic and publish today.</p>
+        </div>
       </div>
 
-      <div class="btn-group">
-        <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sheet" title="Open Google Sheet">
-          📊 Open Google Spreadsheet
-        </a>
-        <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-youtube" title="Open YouTube Studio">
-          📺 Open YT Studio
-        </a>
+      <form id="prompt-form" class="creator-form" onsubmit="event.preventDefault(); submitCustomPrompt();">
+        <div class="input-row">
+          <div class="input-field-group">
+            <input 
+              type="text" 
+              id="input-prompt" 
+              class="input-text" 
+              placeholder="e.g. DeepSeek-R1 jailbreak via system prompt leakage breakdown" 
+              required
+              aria-label="Custom Video Prompt"
+            />
+          </div>
+
+          <select id="select-category" class="select-dropdown" aria-label="Content Track">
+            <option value="Frontier AI">🤖 Track: Frontier AI News</option>
+            <option value="Offensive Cybersecurity">🛡️ Track: Offensive Cybersecurity</option>
+            <option value="Web Penetration Testing">🕵️ Track: Web Pentesting & Exploits</option>
+          </select>
+
+          <button type="submit" id="btn-create-prompt" class="btn btn-primary">
+            ⚡ Generate Video Now
+          </button>
+        </div>
+
+        <div class="creator-presets">
+          <span>Quick Topic Prompts:</span>
+          <span class="preset-pill" onclick="setPrompt('Google Authenticator TOTP offline mathematics breakdown')">Google Authenticator TOTP</span>
+          <span class="preset-pill" onclick="setPrompt('19 billion transistor 4nm EUV wafer from sand breakdown')">4nm Chip Wafer</span>
+          <span class="preset-pill" onclick="setPrompt('SIM swap theft detection lock settings breakdown')">SIM Swap Theft Lock</span>
+          <span class="preset-pill" onclick="setPrompt('Pegasus spyware zero-click WhatsApp exploit breakdown')">Pegasus 0-Click</span>
+        </div>
+
+        <div id="toast-prompt" class="toast-banner toast-banner-success" role="status" aria-live="polite">
+          <span id="toast-prompt-text"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- 2. Dual-Timezone Drop Countdown Telemetry Strip -->
+    <section class="schedule-strip" aria-label="Drop Timing Radar">
+      <!-- YouTube Shorts Countdown -->
+      <div class="schedule-card schedule-card-yt">
+        <div class="card-top">
+          <span class="card-tag">📺 YouTube Shorts (UTC Peak)</span>
+          <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">English Edition</span>
+        </div>
+        <div class="countdown-display tabular" id="countdown-yt">
+          {{ state.schedule.youtube_countdown }}
+        </div>
+        <div class="card-detail">
+          <span>Target Windows: <strong>15:00 UTC & 20:00 UTC</strong></span>
+          <span>Next Scheduled Slot: <strong id="next-yt-slot">{{ state.schedule.next_youtube_slot_utc }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Instagram & FB Countdown -->
+      <div class="schedule-card schedule-card-ig">
+        <div class="card-top">
+          <span class="card-tag">📸 Instagram & FB Reels (IST Peak)</span>
+          <span class="badge" style="background: rgba(232, 121, 249, 0.15); color: #e879f9;">Hindi + Hinglish</span>
+        </div>
+        <div class="countdown-display tabular" id="countdown-ig">
+          {{ state.schedule.instagram_countdown }}
+        </div>
+        <div class="card-detail">
+          <span>Target Windows: <strong>13:00 IST & 20:00 IST</strong></span>
+          <span>Next Scheduled Slot: <strong id="next-ig-slot">{{ state.schedule.next_instagram_slot_ist }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Daily Balance & 1-and-1 Track Split -->
+      <div class="schedule-card schedule-card-balance">
+        <div class="card-top">
+          <span class="card-tag">⚖️ Daily Niche Balance</span>
+          <span class="badge" style="background: rgba(0, 229, 255, 0.15); color: #00e5ff;">Cap: {{ state.max_videos_per_day }}/day</span>
+        </div>
+        <div class="countdown-display tabular">
+          {{ state.completed_today }} / {{ state.max_videos_per_day }}
+        </div>
+        <div class="card-detail">
+          <span>• Frontier AI Drop: <strong>{% if state.has_ai %}Completed ✅{% else %}Pending ⏳{% endif %}</strong></span>
+          <span>• Offensive Cyber Drop: <strong>{% if state.has_cyber %}Completed ✅{% else %}Pending ⏳{% endif %}</strong></span>
+        </div>
       </div>
     </section>
 
-    <!-- Metrics Cards -->
+    <!-- 3. System Metrics Cards -->
     <section class="stats-grid" aria-label="System Metrics">
       <div class="stat-card">
-        <span class="stat-label">Trending Stories Found</span>
-        <span class="stat-value tabular">{{ stats.total_articles }}</span>
+        <span class="stat-label">Stories Ingested</span>
+        <span class="stat-value tabular" id="stat-articles">{{ stats.total_articles }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">Videos Produced</span>
-        <span class="stat-value tabular">{{ stats.total_videos }}</span>
+        <span class="stat-value tabular" id="stat-videos">{{ stats.total_videos }}</span>
       </div>
       <div class="stat-card">
-        <span class="stat-label">Published / Distributed</span>
-        <span class="stat-value tabular">{{ stats.total_published }}</span>
+        <span class="stat-label">Live On Socials</span>
+        <span class="stat-value tabular" id="stat-published">{{ stats.total_published }}</span>
       </div>
       <div class="stat-card">
         <span class="stat-label">Active Worker Jobs</span>
-        <span class="stat-value tabular">{{ stats.active_jobs }}</span>
+        <span class="stat-value tabular" id="stat-jobs">{{ stats.active_jobs }}</span>
       </div>
     </section>
 
-    <!-- Video Queue & Completed History Table -->
+    <!-- 4. Quick Action Controls Bar -->
+    <section class="actions-bar" aria-label="Action Controls">
+      <div class="btn-group">
+        <button id="btn-run" class="btn btn-primary" onclick="triggerRun()">
+          🚀 Run Pipeline Cycle Now
+        </button>
+        <button id="btn-scrape" class="btn btn-secondary" onclick="triggerScrape()">
+          🔍 Scrape Intelligence Feeds
+        </button>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-pause" onclick="togglePublishingState()">
+          {% if state.paused %}🟢 Resume Auto-Post{% else %}⏸️ Pause Auto-Post{% endif %}
+        </button>
+        <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-youtube" title="Open YouTube Studio">
+          📺 YouTube Studio
+        </a>
+      </div>
+    </section>
+
+    <!-- 5. Video Queue & Management History Table -->
     <section class="section-card" aria-label="Generated Videos">
       <div class="section-header">
         <h2 class="section-title">Video Queue & Distribution Log</h2>
-        <span class="brand-subtitle">Auto-synced with YouTube Studio, Telegram Storage & Google Sheets</span>
+        <span class="brand-subtitle">Automated Multi-Platform Release History</span>
       </div>
 
       {% if videos and videos|length > 0 %}
@@ -555,9 +1128,10 @@
               <th>Date</th>
               <th>Headline / Video Title</th>
               <th>Status</th>
+              <th>Actions</th>
               <th>Cloud Storage</th>
-              <th>YouTube Short</th>
-              <th>Instagram</th>
+              <th>YouTube Short (UTC)</th>
+              <th>Instagram Reel (IST)</th>
               <th>Facebook Reel</th>
             </tr>
           </thead>
@@ -565,47 +1139,56 @@
             {% for v in videos %}
             <tr>
               <td class="tabular">#{{ v.id }}</td>
-              <td class="tabular" style="color: var(--color-text-secondary); font-size: 13px;">{{ v.created_at[:16].replace('T', ' ') }}</td>
-              <td style="font-weight: 600; max-width: 380px;">{{ v.title }}</td>
+              <td class="tabular" style="color: var(--color-text-secondary); font-size: 13px;">
+                {{ v.created_at[:16].replace('T', ' ') }}
+              </td>
+              <td style="font-weight: 600; max-width: 320px;">
+                {{ v.title }}
+              </td>
               <td>
                 <span class="badge badge-status-{{ v.status }}">
                   {{ v.status.upper() }}
                 </span>
               </td>
               <td>
+                <button class="link-pill btn-preview" onclick="openPreviewModal({{ v.id }})">
+                  ▶️ Preview
+                </button>
+              </td>
+              <td>
                 {% if v.storage_url %}
                 <a href="{{ v.storage_url }}" target="_blank" rel="noopener noreferrer" class="link-pill">
-                  ☁️ Storage Link
+                  ☁️ Storage
                 </a>
                 {% else %}
                 <span style="color: var(--color-text-muted);">-</span>
                 {% endif %}
               </td>
               <td>
-                {% if v.youtube_url %}
-                <a href="{{ v.youtube_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #f87171;">
-                  ▶️ Watch Short
+                {% if v.youtube_url and 'youtube' in v.youtube_url %}
+                <a href="{{ v.youtube_url.split(' ')[0] }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #f87171;">
+                  ▶️ YT Short
                 </a>
                 {% else %}
-                <span style="color: var(--color-text-muted);">Pending</span>
+                <span style="color: var(--color-text-muted);">{{ v.youtube_url or 'Pending' }}</span>
                 {% endif %}
               </td>
               <td>
-                {% if v.instagram_url %}
+                {% if v.instagram_url and 'instagram' in v.instagram_url %}
                 <a href="{{ v.instagram_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #e879f9;">
-                  📸 View Reel
+                  📸 IG Reel
                 </a>
                 {% else %}
-                <span style="color: var(--color-text-muted);">-</span>
+                <span style="color: var(--color-text-muted);">{{ v.instagram_url or '-' }}</span>
                 {% endif %}
               </td>
               <td>
-                {% if v.facebook_url %}
+                {% if v.facebook_url and 'facebook' in v.facebook_url %}
                 <a href="{{ v.facebook_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #60a5fa;">
-                  📘 View on FB
+                  📘 FB Reel
                 </a>
                 {% else %}
-                <span style="color: var(--color-text-muted);">-</span>
+                <span style="color: var(--color-text-muted);">{{ v.facebook_url or '-' }}</span>
                 {% endif %}
               </td>
             </tr>
@@ -614,12 +1197,11 @@
         </table>
       </div>
       {% else %}
-      <!-- Robust Empty State -->
       <div class="empty-state">
         <div class="empty-icon">🎬</div>
         <h3 class="empty-title">No Videos Generated Yet</h3>
         <p class="empty-desc">
-          Your automated production engine is standing by. Click the button below to fetch trending Cybersecurity & Tech news and synthesize your first viral video!
+          Your automated video engine is standing by. Click the button below to fetch trending Cybersecurity & Tech news or enter a custom prompt above!
         </p>
         <button class="btn btn-primary" onclick="triggerRun()" style="margin-top: var(--space-2);">
           🚀 Generate First Video Now
@@ -628,16 +1210,22 @@
       {% endif %}
     </section>
 
-    <!-- Real-time Telemetry Logs -->
+    <!-- 6. Real-time Telemetry & Live Terminal Logs -->
     <section class="section-card" aria-label="System Telemetry">
       <div class="section-header">
-        <h2 class="section-title">Live System Telemetry & Activity</h2>
-        <span class="brand-subtitle">Real-time worker daemon output</span>
+        <h2 class="section-title">Live System Telemetry & Console Logs</h2>
+        <div class="terminal-controls">
+          <button class="filter-btn active" onclick="filterLogs('ALL')">All</button>
+          <button class="filter-btn" onclick="filterLogs('INFO')">Info</button>
+          <button class="filter-btn" onclick="filterLogs('WARNING')">Warnings</button>
+          <button class="filter-btn" onclick="filterLogs('ERROR')">Errors</button>
+          <button class="filter-btn" onclick="copyLogs()">📋 Copy</button>
+        </div>
       </div>
 
-      <div class="terminal-window" id="terminal-logs">
+      <div class="terminal-window" id="terminal-logs" role="log" aria-live="polite">
         {% for log in logs %}
-        <div class="log-row {% if log.level == 'ERROR' %}log-error{% endif %}">
+        <div class="log-row log-{{ log.level.lower() }}" data-level="{{ log.level }}">
           <span class="log-time tabular">{{ log.timestamp[11:19] }}</span>
           <span class="log-module">[{{ log.module }}]</span>
           <span class="log-msg">{{ log.message }}</span>
@@ -648,7 +1236,135 @@
 
   </main>
 
+  <!-- =====================================================================
+       VIDEO PREVIEW MODAL (Focus Trapped & Keyboard Accessible)
+       ===================================================================== -->
+  <div id="modal-video-preview" class="modal-backdrop" onclick="if(event.target===this) closePreviewModal();" role="dialog" aria-modal="true" aria-labelledby="modal-preview-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-preview-title">Video Preview #<span id="modal-job-id">--</span></h3>
+        <button class="btn-close" onclick="closePreviewModal()" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="video-frame-container">
+          <video id="modal-video-player" controls preload="metadata">
+            <source id="video-source" src="" type="video/mp4">
+            Your browser does not support HTML5 vertical video streaming.
+          </video>
+        </div>
+        <div class="modal-details">
+          <div class="detail-card">
+            <span class="detail-label">Headline / Title</span>
+            <span class="detail-text" id="modal-video-title">--</span>
+          </div>
+          <div class="detail-card">
+            <span class="detail-label">Hook (0-2s)</span>
+            <span class="detail-text" id="modal-video-hook" style="font-style: italic;">--</span>
+          </div>
+          <div class="detail-card">
+            <span class="detail-label">Script Breakdown</span>
+            <span class="detail-text" id="modal-video-script" style="max-height: 120px; overflow-y: auto;">--</span>
+          </div>
+          <div style="display: flex; gap: var(--space-2); margin-top: auto;">
+            <a id="modal-btn-storage" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="flex: 1;">
+              ☁️ Cloud Link
+            </a>
+            <a id="modal-btn-youtube" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-youtube" style="flex: 1;">
+              ▶️ Watch Short
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       CLIENT JAVASCRIPT CONTROLLER
+       ===================================================================== -->
   <script>
+    // 1. Live Wall-Clock Timers (UTC and IST)
+    function updateClocks() {
+      const now = new Date();
+      const utcStr = now.toISOString().substring(11, 19);
+      
+      // Calculate IST (UTC + 5:30)
+      const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+      const istStr = istTime.toISOString().substring(11, 19);
+      
+      document.getElementById("clock-utc").textContent = utcStr;
+      document.getElementById("clock-ist").textContent = istStr;
+    }
+    setInterval(updateClocks, 1000);
+    updateClocks();
+
+    // 2. Custom Prompt Submission
+    async function submitCustomPrompt() {
+      const promptInput = document.getElementById("input-prompt");
+      const categorySelect = document.getElementById("select-category");
+      const submitBtn = document.getElementById("btn-create-prompt");
+      const toast = document.getElementById("toast-prompt");
+      const toastText = document.getElementById("toast-prompt-text");
+
+      const promptVal = promptInput.value.trim();
+      if (!promptVal) return;
+
+      submitBtn.disabled = true;
+      submitBtn.innerText = "⏳ Generating...";
+
+      try {
+        const resp = await fetch("/api/create-prompt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: promptVal,
+            category: categorySelect.value
+          })
+        });
+
+        const data = await resp.json();
+        if (resp.ok) {
+          toastText.textContent = "🚀 " + data.message;
+          toast.style.display = "flex";
+          promptInput.value = "";
+          setTimeout(() => { toast.style.display = "none"; }, 8000);
+          refreshStats();
+        } else {
+          alert("Error: " + (data.message || "Failed to initiate generation"));
+        }
+      } catch (err) {
+        alert("Network error: " + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = "⚡ Generate Video Now";
+      }
+    }
+
+    function setPrompt(text) {
+      document.getElementById("input-prompt").value = text;
+      document.getElementById("input-prompt").focus();
+    }
+
+    // 3. Publishing Pause/Resume Toggle
+    async function togglePublishingState() {
+      try {
+        const resp = await fetch("/api/toggle-pause", { method: "POST" });
+        const data = await resp.json();
+        const pill = document.getElementById("btn-toggle-pause");
+        const statusText = document.getElementById("text-publishing-status");
+
+        if (data.paused) {
+          pill.className = "status-pill status-pill-paused";
+          statusText.textContent = "⏸️ PAUSED (Holding in Storage)";
+        } else {
+          pill.className = "status-pill status-pill-active";
+          statusText.textContent = "🟢 ACTIVE (Auto-Publishing)";
+        }
+      } catch (err) {
+        alert("Failed to toggle publishing state: " + err.message);
+      }
+    }
+
+    // 4. Trigger Immediate Pipeline Cycle
     async function triggerRun() {
       const btn = document.getElementById("btn-run");
       btn.disabled = true;
@@ -657,40 +1373,137 @@
         const resp = await fetch("/api/run-now", { method: "POST" });
         const res = await resp.json();
         alert(res.message || "Pipeline execution started in background!");
-        setTimeout(() => window.location.reload(), 1500);
+        setTimeout(() => window.location.reload(), 2000);
       } catch (err) {
         alert("Error starting pipeline: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = "🚀 Run Pipeline Now";
+        btn.innerText = "🚀 Run Pipeline Cycle Now";
       }
     }
 
+    // 5. Trigger Scraper
     async function triggerScrape() {
       const btn = document.getElementById("btn-scrape");
       btn.disabled = true;
-      btn.innerText = "⏳ Scraping...";
+      btn.innerText = "⏳ Scraping Feeds...";
       try {
         const resp = await fetch("/api/scrape-now", { method: "POST" });
         const res = await resp.json();
         alert(res.message || "News feeds scraped!");
-        setTimeout(() => window.location.reload(), 1000);
+        setTimeout(() => window.location.reload(), 1500);
       } catch (err) {
         alert("Error scraping: " + err.message);
       } finally {
         btn.disabled = false;
-        btn.innerText = "🔍 Scrape Trends Only";
+        btn.innerText = "🔍 Scrape Intelligence Feeds";
       }
     }
 
-    // Auto-refresh logs every 15 seconds
-    setInterval(() => {
-      fetch("/api/stats")
-        .then(r => r.json())
-        .catch(() => {});
-    }, 15000);
+    // 6. Video Preview Modal
+    async function openPreviewModal(jobId) {
+      const modal = document.getElementById("modal-video-preview");
+      const videoPlayer = document.getElementById("modal-video-player");
+      const videoSource = document.getElementById("video-source");
+
+      document.getElementById("modal-job-id").textContent = jobId;
+      videoSource.src = `/api/video/${jobId}/stream`;
+      videoPlayer.load();
+
+      try {
+        const resp = await fetch(`/api/video/${jobId}/details`);
+        if (resp.ok) {
+          const v = await resp.json();
+          document.getElementById("modal-video-title").textContent = v.title || "--";
+          document.getElementById("modal-video-hook").textContent = v.hook ? `"${v.hook}"` : "--";
+          document.getElementById("modal-video-script").textContent = v.script || "--";
+          
+          const storageBtn = document.getElementById("modal-btn-storage");
+          if (v.storage_url) {
+            storageBtn.href = v.storage_url;
+            storageBtn.style.display = "inline-flex";
+          } else {
+            storageBtn.style.display = "none";
+          }
+
+          const ytBtn = document.getElementById("modal-btn-youtube");
+          if (v.youtube_url && v.youtube_url.includes("youtube")) {
+            ytBtn.href = v.youtube_url.split(" ")[0];
+            ytBtn.style.display = "inline-flex";
+          } else {
+            ytBtn.style.display = "none";
+          }
+        }
+      } catch (e) {}
+
+      modal.classList.add("active");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closePreviewModal() {
+      const modal = document.getElementById("modal-video-preview");
+      const videoPlayer = document.getElementById("modal-video-player");
+      videoPlayer.pause();
+      modal.classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    // Modal Escape Key Dismissal
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closePreviewModal();
+      }
+    });
+
+    // 7. Live Terminal Filter & Refresh
+    function filterLogs(level) {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      event.target.classList.add("active");
+
+      const rows = document.querySelectorAll(".log-row");
+      rows.forEach(r => {
+        if (level === "ALL" || r.dataset.level === level) {
+          r.style.display = "flex";
+        } else {
+          r.style.display = "none";
+        }
+      });
+    }
+
+    function copyLogs() {
+      const logs = Array.from(document.querySelectorAll(".log-row"))
+        .map(r => r.innerText.replace(/\s+/g, ' ').trim())
+        .join("\n");
+      navigator.clipboard.writeText(logs).then(() => {
+        alert("Logs copied to clipboard!");
+      });
+    }
+
+    // 8. Background Poller for Telemetry
+    async function refreshStats() {
+      try {
+        const resp = await fetch("/api/system-state");
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.schedule) {
+            document.getElementById("countdown-yt").textContent = data.schedule.youtube_countdown;
+            document.getElementById("countdown-ig").textContent = data.schedule.instagram_countdown;
+            document.getElementById("next-yt-slot").textContent = data.schedule.next_youtube_slot_utc;
+            document.getElementById("next-ig-slot").textContent = data.schedule.next_instagram_slot_ist;
+          }
+          if (data.stats) {
+            document.getElementById("stat-articles").textContent = data.stats.total_articles;
+            document.getElementById("stat-videos").textContent = data.stats.total_videos;
+            document.getElementById("stat-published").textContent = data.stats.total_published;
+            document.getElementById("stat-jobs").textContent = data.stats.active_jobs;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Poll every 10 seconds
+    setInterval(refreshStats, 10000);
   </script>
 
 </body>
 </html>
-
