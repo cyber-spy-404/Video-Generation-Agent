@@ -102,9 +102,9 @@ GOOGLE_SHEET_WEBHOOK_URL = os.getenv("GOOGLE_SHEET_WEBHOOK_URL", "").strip()
 # Discord Webhook Notification Alerts
 DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "").strip()
 
-# VPS Server & Dashboard
+# VPS Server & Dashboard Port (Auto-detects Pterodactyl SERVER_PORT or cloud PORT)
 DASHBOARD_HOST = os.getenv("DASHBOARD_HOST", "0.0.0.0")
-DASHBOARD_PORT = int(os.getenv("DASHBOARD_PORT", "8000"))
+DASHBOARD_PORT = int(os.getenv("SERVER_PORT") or os.getenv("PORT") or os.getenv("DASHBOARD_PORT", "8000"))
 DASHBOARD_SECRET_KEY = os.getenv("DASHBOARD_SECRET_KEY", "cyber-ai-video-secret-key")
 CONCURRENT_WORKERS = int(os.getenv("CONCURRENT_WORKERS", "2"))
 
