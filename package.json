@@ -1,0 +1,14 @@
+{
+  "name": "cybershorts-ai-engine",
+  "version": "1.0.0",
+  "description": "CyberShorts AI - Autonomous Video Production Suite",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
+  },
+  "author": "Antigravity",
+  "license": "MIT"
+}

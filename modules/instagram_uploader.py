@@ -1,0 +1,192 @@
+import time
+import requests
+from typing import Dict, Any, Optional
+from config import (
+    INSTAGRAM_ACCOUNT_ID,
+    INSTAGRAM_ACCESS_TOKEN,
+    INSTAGRAM_USERNAME,
+    INSTAGRAM_PASSWORD,
+    INSTAGRAM_AUTO_POST,
+    INSTAGRAM_FB_POST_TIMES_IST,
+    INSTAGRAM_FB_SCHEDULE_MODE
+)
+from modules.database import db
+from modules.timing_manager import timing_manager
+
+class InstagramUploader:
+    def __init__(self):
+        self.account_id = INSTAGRAM_ACCOUNT_ID
+        self.access_token = INSTAGRAM_ACCESS_TOKEN
+        self.username = INSTAGRAM_USERNAME
+        self.password = INSTAGRAM_PASSWORD
+        self.enabled = INSTAGRAM_AUTO_POST
+        self.schedule_mode = INSTAGRAM_FB_SCHEDULE_MODE
+        self.post_times_ist = INSTAGRAM_FB_POST_TIMES_IST
+
+    def refresh_long_lived_token(self) -> Optional[str]:
+        """
+        Refreshes a 60-day Instagram user long-lived access token.
+        Tokens can be refreshed when they are at least 24 hours old.
+        """
+        if not self.access_token:
+            return None
+
+        url = "https://graph.instagram.com/refresh_access_token"
+        params = {
+            "grant_type": "ig_refresh_token",
+            "access_token": self.access_token
+        }
+        try:
+            resp = requests.get(url, params=params, timeout=20)
+            if resp.status_code == 200:
+                data = resp.json()
+                new_token = data.get("access_token")
+                if new_token:
+                    self.access_token = new_token
+                    db.log("INFO", "Instagram", "Instagram long-lived access token refreshed successfully!")
+                    return new_token
+        except Exception as e:
+            db.log("WARNING", "Instagram", f"Token refresh warning: {e}")
+        return None
+
+    def post_reel_via_graph_api(
+        self,
+        public_video_url: str,
+        caption: str,
+        scheduled_publish_time: Optional[int] = None
+    ) -> Optional[str]:
+        """
+        Publishes a Reel via Meta Graph API (Supports both graph.instagram.com & graph.facebook.com).
+        Requires a public video URL (provided by Telegram or Catbox).
+        Supports scheduled_publish_time (Unix timestamp in seconds for IST scheduling).
+        """
+        if not self.account_id or not self.access_token:
+            return None
+
+        db.log("INFO", "Instagram", "Publishing Reel via Meta Instagram Graph API...")
+
+        # Try graph.instagram.com first (Instagram Login for Business API), fallback to graph.facebook.com
+        base_hosts = ["https://graph.instagram.com/v21.0", "https://graph.facebook.com/v21.0"]
+
+        container_id = None
+        working_base = None
+
+        payload = {
+            "media_type": "REELS",
+            "video_url": public_video_url,
+            "caption": caption[:2200],
+            "access_token": self.access_token
+        }
+
+        if scheduled_publish_time:
+            payload["scheduled_publish_time"] = scheduled_publish_time
+            db.log("INFO", "Instagram", f"Reel scheduled for IST drop at timestamp: {scheduled_publish_time}")
+
+        # 1. Create Media Container
+        for base in base_hosts:
+            graph_url = f"{base}/{self.account_id}/media"
+            try:
+                resp = requests.post(graph_url, data=payload, timeout=30)
+                if resp.status_code == 200:
+                    container_id = resp.json().get("id")
+                    working_base = base
+                    db.log("INFO", "Instagram", f"Reel container created ({container_id}) via {base}. Processing...")
+                    break
+                else:
+                    db.log("WARNING", "Instagram", f"Host {base} returned HTTP {resp.status_code}: {resp.text[:200]}")
+            except Exception as e:
+                db.log("WARNING", "Instagram", f"Error connecting to {base}: {e}")
+
+        if not container_id or not working_base:
+            db.log("ERROR", "Instagram", "Failed to create Instagram Reel container on all endpoints.")
+            return None
+
+        # If scheduled with scheduled_publish_time, container will be published automatically by Instagram
+        if scheduled_publish_time:
+            ig_scheduled_url = f"https://www.instagram.com/reel/scheduled_{container_id}/"
+            db.log("INFO", "Instagram", f"Reel scheduled successfully in container {container_id}!")
+            return ig_scheduled_url
+
+        # 2. Poll Status until FINISHED
+        status_url = f"{working_base}/{container_id}"
+        for _ in range(30):
+            time.sleep(10)
+            try:
+                status_resp = requests.get(status_url, params={"fields": "status_code", "access_token": self.access_token}, timeout=15)
+                if status_resp.status_code == 200:
+                    status_code = status_resp.json().get("status_code")
+                    if status_code == "FINISHED":
+                        break
+                    elif status_code == "ERROR":
+                        db.log("ERROR", "Instagram", "Instagram server returned ERROR during video processing.")
+                        return None
+            except Exception as e:
+                db.log("WARNING", "Instagram", f"Status poll exception: {e}")
+
+        # 3. Publish Media
+        publish_url = f"{working_base}/{self.account_id}/media_publish"
+        try:
+            pub_resp = requests.post(publish_url, data={"creation_id": container_id, "access_token": self.access_token}, timeout=30)
+            if pub_resp.status_code == 200:
+                post_id = pub_resp.json().get("id")
+                ig_url = f"https://www.instagram.com/reel/{post_id}/"
+                db.log("INFO", "Instagram", f"Reel published successfully: {ig_url}")
+                return ig_url
+            else:
+                db.log("ERROR", "Instagram", f"Failed to publish container: {pub_resp.text}")
+        except Exception as e:
+            db.log("ERROR", "Instagram", f"Publish exception: {e}")
+
+        return None
+
+    def post_reel_via_instagrapi(self, video_path: str, caption: str) -> Optional[str]:
+        """Publishes Reel via direct instagrapi client (personal accounts)."""
+        if not self.username or not self.password:
+            return None
+
+        try:
+            from instagrapi import Client
+            cl = Client()
+            cl.login(self.username, self.password)
+            media = cl.clip_upload(video_path, caption=caption)
+            media_code = getattr(media, "code", "")
+            if media_code:
+                ig_url = f"https://www.instagram.com/reel/{media_code}/"
+                db.log("INFO", "Instagram", f"Reel published via instagrapi: {ig_url}")
+                return ig_url
+        except ImportError:
+            db.log("WARNING", "Instagram", "instagrapi package not installed.")
+        except Exception as e:
+            db.log("ERROR", "Instagram", f"instagrapi publish failed: {str(e)}")
+
+        return None
+
+    def post_reel(
+        self,
+        video_path: str,
+        public_video_url: str,
+        title: str,
+        script: str,
+        scheduled_publish_time: Optional[int] = None
+    ) -> Optional[str]:
+        """Unified publisher: tries Graph API first (with IST scheduling if requested), then instagrapi."""
+        if not self.enabled:
+            db.log("INFO", "Instagram", "Instagram auto-post is disabled in config.")
+            return None
+
+        caption = (
+            f"🚨 {title}\n\n"
+            f"{script[:300]}...\n\n"
+            f"#CyberSecurity #EthicalHacking #BugBounty #InfoSec #WebPentesting #Coding #TechNews #Reels"
+        )
+
+        # 1. Graph API (if public URL available)
+        if public_video_url and public_video_url.startswith("http"):
+            url = self.post_reel_via_graph_api(public_video_url, caption, scheduled_publish_time=scheduled_publish_time)
+            if url:
+                return url
+
+        # 2. instagrapi fallback
+        return self.post_reel_via_instagrapi(video_path, caption)
+
+instagram_uploader = InstagramUploader()

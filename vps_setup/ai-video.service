@@ -1,0 +1,18 @@
+[Unit]
+Description=CyberShorts AI - Autonomous Video Production Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/ai-video-automation
+Environment=PATH=/opt/ai-video-automation/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/ai-video-automation/.venv/bin/python run.py --daemon
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

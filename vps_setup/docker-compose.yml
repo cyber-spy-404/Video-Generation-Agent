@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  ai-video-worker:
+    build:
+      context: ..
+      dockerfile: vps_setup/Dockerfile
+    container_name: cybershorts_ai_engine
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../storage:/app/storage
+      - ../logs:/app/logs
+      - ../client_secrets.json:/app/client_secrets.json:ro
+      - ../token.json:/app/token.json
+    env_file:
+      - ../.env
+

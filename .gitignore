@@ -1,0 +1,103 @@
+# =====================================================================
+# Git Ignore - CyberShorts AI Video Automation Engine
+# =====================================================================
+
+# Environment & Secrets (NEVER COMMIT SENSITIVE CREDENTIALS)
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+client_secrets.json
+token.json
+google_sheets_creds.json
+*.pem
+*.key
+*.cert
+*.p12
+
+# Runtime Storage & Generated Media (Videos, Audio, Subtitles, Cache)
+storage/
+storage/videos/
+storage/audio/
+storage/subtitles/
+storage/cache/
+storage/*.db
+storage/*.sqlite
+storage/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Generated Artifacts & Archives
+*.mp4
+*.mp3
+*.wav
+*.ass
+*.srt
+cybershorts-vps-deploy.zip
+*.zip
+*.tar.gz
+*.tar
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Logs & Diagnostics
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Node / JS
+node_modules/
+.npm/
+
+# IDE & OS Specific
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Scratch / Temp Workspaces
+scratch/
+tmp/
+temp/

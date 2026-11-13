@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Autonomous AI Video Automation Engine for Cybersecurity, Tech and Penetration Testing Shorts">
+  <title>CyberShorts AI - VPS Mission Control</title>
+  
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      
+      --color-bg: #050811;
+      --color-surface-base: #090e1a;
+      --color-surface-elevated: rgba(16, 26, 46, 0.85);
+      --color-surface-card: rgba(12, 20, 36, 0.70);
+      --color-surface-hover: rgba(22, 36, 64, 0.60);
+      
+      --color-border-subtle: rgba(255, 255, 255, 0.08);
+      --color-border-strong: rgba(0, 229, 255, 0.35);
+      
+      --color-text-primary: #f8fafc;
+      --color-text-secondary: #94a3b8;
+      --color-text-muted: #64748b;
+      
+      --color-brand-cyan: #00e5ff;
+      --color-brand-red: #ef4444;
+      --color-brand-green: #10b981;
+      --color-brand-yellow: #f59e0b;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-card: 18px;
+      
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-bg);
+      color: var(--color-text-primary);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .app-header {
+      background-color: var(--color-surface-base);
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding: var(--space-4) var(--space-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #00e5ff 0%, #3b82f6 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: #050811;
+      box-shadow: 0 0 16px rgba(0, 229, 255, 0.4);
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--color-text-secondary);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--color-brand-green);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-brand-green);
+      box-shadow: 0 0 8px var(--color-brand-green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.1); }
+    }
+
+    .main-content {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: var(--space-6);
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    /* Actions Bar */
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      background: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: 10px 18px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      text-decoration: none;
+      transition: background-color 150ms ease, transform 150ms ease, border-color 150ms ease;
+      touch-action: manipulation;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--color-brand-cyan);
+      outline-offset: 2px;
+    }
+
+    .btn-primary {
+      background: var(--color-brand-cyan);
+      color: #050811;
+      box-shadow: 0 4px 14px rgba(0, 229, 255, 0.25);
+    }
+    .btn-primary:hover {
+      background: #33ebff;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-text-primary);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sheet {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .btn-sheet:hover {
+      background: rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-youtube {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+    .btn-youtube:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-4);
+    }
+
+    .stat-card {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-card);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--color-text-primary);
+    }
+
+    /* Sections */
+    .section-card {
+      background: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-card);
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-wrap: balance;
+    }
+
+    /* Responsive Data Table */
+    .table-container {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-surface-base);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--color-text-secondary);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      color: var(--color-text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: var(--color-surface-hover);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-status-completed {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-status-rendering, .badge-status-scripting {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-status-error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Links inside table */
+    .link-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--color-text-primary);
+      border: 1px solid var(--color-border-subtle);
+      transition: background 150ms ease;
+    }
+    .link-pill:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: var(--space-8) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: var(--space-3);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      opacity: 0.8;
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .empty-desc {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      max-width: 440px;
+      text-wrap: pretty;
+    }
+
+    /* Terminal Logs */
+    .terminal-window {
+      background: #03060c;
+      border: 1px solid var(--color-border-subtle);
+      border-radius: var(--radius-md);
+      padding: var(--space-4);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      max-height: 260px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .log-row {
+      display: flex;
+      gap: 12px;
+      line-height: 1.4;
+    }
+
+    .log-time {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+
+    .log-module {
+      color: var(--color-brand-cyan);
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+
+    .log-msg {
+      color: #e2e8f0;
+      word-break: break-word;
+    }
+
+    .log-error .log-msg {
+      color: #f87171;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .main-content {
+        padding: var(--space-4);
+      }
+      .actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn-group {
+        flex-direction: column;
+      }
+      .btn {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <h1 class="brand-title">CyberShorts AI Engine</h1>
+        <p class="brand-subtitle">Autonomous Tech, Pentesting & Cybersecurity Pipeline</p>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="status-pill">
+        <span class="status-dot"></span>
+        VPS Engine Online
+      </span>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <main class="main-content">
+
+    <!-- Actions Control Bar -->
+    <section class="actions-bar" aria-label="Action Controls">
+      <div class="btn-group">
+        <button id="btn-run" class="btn btn-primary" onclick="triggerRun()">
+          🚀 Run Pipeline Now
+        </button>
+        <button id="btn-scrape" class="btn btn-secondary" onclick="triggerScrape()">
+          🔍 Scrape Trends Only
+        </button>
+      </div>
+
+      <div class="btn-group">
+        <a href="{{ sheet_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sheet" title="Open Google Sheet">
+          📊 Open Google Spreadsheet
+        </a>
+        <a href="https://studio.youtube.com" target="_blank" rel="noopener noreferrer" class="btn btn-youtube" title="Open YouTube Studio">
+          📺 Open YT Studio
+        </a>
+      </div>
+    </section>
+
+    <!-- Metrics Cards -->
+    <section class="stats-grid" aria-label="System Metrics">
+      <div class="stat-card">
+        <span class="stat-label">Trending Stories Found</span>
+        <span class="stat-value tabular">{{ stats.total_articles }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Videos Produced</span>
+        <span class="stat-value tabular">{{ stats.total_videos }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Published / Distributed</span>
+        <span class="stat-value tabular">{{ stats.total_published }}</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Active Worker Jobs</span>
+        <span class="stat-value tabular">{{ stats.active_jobs }}</span>
+      </div>
+    </section>
+
+    <!-- Video Queue & Completed History Table -->
+    <section class="section-card" aria-label="Generated Videos">
+      <div class="section-header">
+        <h2 class="section-title">Video Queue & Distribution Log</h2>
+        <span class="brand-subtitle">Auto-synced with YouTube Studio, Telegram Storage & Google Sheets</span>
+      </div>
+
+      {% if videos and videos|length > 0 %}
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Date</th>
+              <th>Headline / Video Title</th>
+              <th>Status</th>
+              <th>Cloud Storage</th>
+              <th>YouTube Short</th>
+              <th>Instagram</th>
+              <th>Facebook Reel</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in videos %}
+            <tr>
+              <td class="tabular">#{{ v.id }}</td>
+              <td class="tabular" style="color: var(--color-text-secondary); font-size: 13px;">{{ v.created_at[:16].replace('T', ' ') }}</td>
+              <td style="font-weight: 600; max-width: 380px;">{{ v.title }}</td>
+              <td>
+                <span class="badge badge-status-{{ v.status }}">
+                  {{ v.status.upper() }}
+                </span>
+              </td>
+              <td>
+                {% if v.storage_url %}
+                <a href="{{ v.storage_url }}" target="_blank" rel="noopener noreferrer" class="link-pill">
+                  ☁️ Storage Link
+                </a>
+                {% else %}
+                <span style="color: var(--color-text-muted);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if v.youtube_url %}
+                <a href="{{ v.youtube_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #f87171;">
+                  ▶️ Watch Short
+                </a>
+                {% else %}
+                <span style="color: var(--color-text-muted);">Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if v.instagram_url %}
+                <a href="{{ v.instagram_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #e879f9;">
+                  📸 View Reel
+                </a>
+                {% else %}
+                <span style="color: var(--color-text-muted);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if v.facebook_url %}
+                <a href="{{ v.facebook_url }}" target="_blank" rel="noopener noreferrer" class="link-pill" style="color: #60a5fa;">
+                  📘 View on FB
+                </a>
+                {% else %}
+                <span style="color: var(--color-text-muted);">-</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <!-- Robust Empty State -->
+      <div class="empty-state">
+        <div class="empty-icon">🎬</div>
+        <h3 class="empty-title">No Videos Generated Yet</h3>
+        <p class="empty-desc">
+          Your automated production engine is standing by. Click the button below to fetch trending Cybersecurity & Tech news and synthesize your first viral video!
+        </p>
+        <button class="btn btn-primary" onclick="triggerRun()" style="margin-top: var(--space-2);">
+          🚀 Generate First Video Now
+        </button>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- Real-time Telemetry Logs -->
+    <section class="section-card" aria-label="System Telemetry">
+      <div class="section-header">
+        <h2 class="section-title">Live System Telemetry & Activity</h2>
+        <span class="brand-subtitle">Real-time worker daemon output</span>
+      </div>
+
+      <div class="terminal-window" id="terminal-logs">
+        {% for log in logs %}
+        <div class="log-row {% if log.level == 'ERROR' %}log-error{% endif %}">
+          <span class="log-time tabular">{{ log.timestamp[11:19] }}</span>
+          <span class="log-module">[{{ log.module }}]</span>
+          <span class="log-msg">{{ log.message }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    async function triggerRun() {
+      const btn = document.getElementById("btn-run");
+      btn.disabled = true;
+      btn.innerText = "⏳ Running Pipeline...";
+      try {
+        const resp = await fetch("/api/run-now", { method: "POST" });
+        const res = await resp.json();
+        alert(res.message || "Pipeline execution started in background!");
+        setTimeout(() => window.location.reload(), 1500);
+      } catch (err) {
+        alert("Error starting pipeline: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 Run Pipeline Now";
+      }
+    }
+
+    async function triggerScrape() {
+      const btn = document.getElementById("btn-scrape");
+      btn.disabled = true;
+      btn.innerText = "⏳ Scraping...";
+      try {
+        const resp = await fetch("/api/scrape-now", { method: "POST" });
+        const res = await resp.json();
+        alert(res.message || "News feeds scraped!");
+        setTimeout(() => window.location.reload(), 1000);
+      } catch (err) {
+        alert("Error scraping: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🔍 Scrape Trends Only";
+      }
+    }
+
+    // Auto-refresh logs every 15 seconds
+    setInterval(() => {
+      fetch("/api/stats")
+        .then(r => r.json())
+        .catch(() => {});
+    }, 15000);
+  </script>
+
+</body>
+</html>
+
