@@ -199,6 +199,14 @@ class Database:
             row = cursor.fetchone()
             return dict(row) if row else None
 
+    def delete_video(self, video_id: int) -> bool:
+        """Deletes a video job record from the database."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM videos WHERE id = ?", (video_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+
     def get_all_videos(self, limit: int = 50) -> List[Dict[str, Any]]:
         with self.get_connection() as conn:
             cursor = conn.cursor()

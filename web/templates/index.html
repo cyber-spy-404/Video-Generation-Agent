@@ -1151,9 +1151,14 @@
                 </span>
               </td>
               <td>
-                <button class="link-pill btn-preview" onclick="openPreviewModal({{ v.id }})">
-                  ▶️ Preview
-                </button>
+                <div style="display: inline-flex; gap: 6px; align-items: center;">
+                  <button class="link-pill btn-preview" onclick="openPreviewModal({{ v.id }})" title="Preview 9:16 Video">
+                    ▶️ Preview
+                  </button>
+                  <button class="link-pill" onclick="deleteVideo({{ v.id }})" style="color: #f87171; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08);" title="Delete video job and disk files">
+                    🗑️ Delete
+                  </button>
+                </div>
               </td>
               <td>
                 {% if v.storage_url %}
@@ -1272,6 +1277,9 @@
             <a id="modal-btn-youtube" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-youtube" style="flex: 1;">
               ▶️ Watch Short
             </a>
+            <button id="modal-btn-delete" onclick="deleteVideoFromModal()" class="btn btn-secondary" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1);" title="Delete this job and clean storage">
+              🗑️ Delete
+            </button>
           </div>
         </div>
       </div>
@@ -1400,8 +1408,11 @@
       }
     }
 
-    // 6. Video Preview Modal
+    // 6. Video Preview Modal & Deletion
+    let currentPreviewJobId = null;
+
     async function openPreviewModal(jobId) {
+      currentPreviewJobId = jobId;
       const modal = document.getElementById("modal-video-preview");
       const videoPlayer = document.getElementById("modal-video-player");
       const videoSource = document.getElementById("video-source");
@@ -1446,6 +1457,33 @@
       videoPlayer.pause();
       modal.classList.remove("active");
       document.body.style.overflow = "";
+      currentPreviewJobId = null;
+    }
+
+    async function deleteVideo(jobId) {
+      if (!confirm(`Are you sure you want to delete Video Job #${jobId}?\n\nThis will permanently delete the job from the database and remove all rendered MP4, audio, and subtitle files from the server.`)) {
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/video/${jobId}`, { method: "DELETE" });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert(res.message || `Job #${jobId} deleted successfully.`);
+          window.location.reload();
+        } else {
+          alert("Error: " + (res.detail || res.message || "Failed to delete"));
+        }
+      } catch (err) {
+        alert("Error deleting video: " + err.message);
+      }
+    }
+
+    async function deleteVideoFromModal() {
+      if (currentPreviewJobId) {
+        const targetId = currentPreviewJobId;
+        closePreviewModal();
+        await deleteVideo(targetId);
+      }
     }
 
     // Modal Escape Key Dismissal

@@ -172,6 +172,36 @@ async def video_details_api(job_id: int):
         raise HTTPException(status_code=404, detail="Video record not found.")
     return JSONResponse(dict(video))
 
+@app.delete("/api/video/{job_id}")
+async def delete_video_api(job_id: int):
+    """Deletes a video record and its associated physical files from disk."""
+    video = db.get_video(job_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video record not found.")
+
+    # Remove physical media files from disk if they exist
+    files_to_remove = [
+        VIDEOS_DIR / f"short_{job_id}.mp4",
+        VIDEOS_DIR / f"short_instagram_{job_id}.mp4",
+        BASE_DIR / "storage" / "audio" / f"speech_{job_id}.mp3",
+        BASE_DIR / "storage" / "audio" / f"speech_88{job_id}.mp3",
+        BASE_DIR / "storage" / "subtitles" / f"subs_{job_id}.ass",
+        BASE_DIR / "storage" / "subtitles" / f"subs_88{job_id}.ass",
+    ]
+    for p in files_to_remove:
+        try:
+            if p.exists():
+                p.unlink()
+        except Exception as fe:
+            db.log("WARNING", "WebDashboard", f"Could not remove file {p.name}: {fe}")
+
+    deleted = db.delete_video(job_id)
+    db.log("INFO", "WebDashboard", f"Deleted video job #{job_id} ('{video.get('title', '')[:40]}')")
+    return JSONResponse({
+        "status": "success",
+        "message": f"Video job #{job_id} and all rendered media files have been deleted successfully."
+    })
+
 @app.get("/api/stats")
 async def get_stats_api():
     return JSONResponse(db.get_stats())

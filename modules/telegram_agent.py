@@ -81,6 +81,7 @@ class TelegramAIAgent:
                 "• *'don't post'* or `/pause` — Pause auto-publishing to YouTube & Instagram\n"
                 "• *'resume'* or `/resume` — Unpause and resume scheduled publishing\n"
                 "• *'preview'* — Upload the latest MP4 video directly to this chat\n"
+                "• *'delete <job_id>'* or `/delete <job_id>` — Delete a video job and remove its files\n"
                 "• *'repost adding <note>'* — Re-upload or edit a video with custom hashtags/text\n\n"
                 "_You can speak to me in plain English! Example: 'make video on Pegasus spyware'_"
             )
@@ -130,6 +131,40 @@ class TelegramAIAgent:
                 f"I am actively armed for your scheduled drops ({', '.join(BEST_POST_TIMES)}) and will automatically publish up to {MAX_VIDEOS_PER_DAY} videos today."
             )
             self.send_message(reply)
+            return
+
+        # 4B. Delete Video Job ("delete video <id>", "/delete <id>", "delete <id>")
+        del_match = re.search(r"(?:/delete|delete\s+video|delete\s+job|delete)\s+(\d+)", text_lower)
+        if del_match:
+            job_id = int(del_match.group(1))
+            video = db.get_video(job_id)
+            if not video:
+                self.send_message(f"❌ *Video Job #{job_id} not found in database.*")
+                return
+
+            from config import VIDEOS_DIR, BASE_DIR
+            files_to_remove = [
+                VIDEOS_DIR / f"short_{job_id}.mp4",
+                VIDEOS_DIR / f"short_instagram_{job_id}.mp4",
+                BASE_DIR / "storage" / "audio" / f"speech_{job_id}.mp3",
+                BASE_DIR / "storage" / "audio" / f"speech_88{job_id}.mp3",
+                BASE_DIR / "storage" / "subtitles" / f"subs_{job_id}.ass",
+                BASE_DIR / "storage" / "subtitles" / f"subs_88{job_id}.ass",
+            ]
+            for p in files_to_remove:
+                try:
+                    if p.exists():
+                        p.unlink()
+                except Exception:
+                    pass
+
+            db.delete_video(job_id)
+            db.log("INFO", "TelegramAgent", f"Deleted video job #{job_id} via Telegram command")
+            self.send_message(
+                f"🗑️ *Video Job #{job_id} Deleted!*\n\n"
+                f"• *Title:* {video.get('title', '--')}\n"
+                f"• Cleaned up rendered MP4, audio voiceovers, and subtitles from server storage."
+            )
             return
 
         # 5. Custom Topic / Prompt Creation ("make video on <topic>", "/prompt <topic>", "/create <topic>")
