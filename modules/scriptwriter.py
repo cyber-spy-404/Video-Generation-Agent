@@ -1,7 +1,8 @@
+from __future__ import annotations
 import re
 import json
 import requests
-from typing import Dict, Any, Tuple, List
+from typing import Dict, Any, Tuple, List, Optional
 from config import GEMINI_API_KEYS
 from modules.database import db
 
