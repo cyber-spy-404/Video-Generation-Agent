@@ -154,6 +154,14 @@ class PipelineOrchestrator:
             storage_url = storage_uploader.upload_video(video_path, video_title, category)
             db.update_video(job_id, storage_url=storage_url)
 
+            # Upload Instagram/Facebook Hinglish Edition to Cloud Storage if separate
+            ig_storage_url = storage_url
+            if ig_video_path and ig_video_path != video_path and os.path.exists(ig_video_path):
+                db.log("INFO", "Pipeline", f"Uploading Instagram Hinglish edition to Cloud Storage...")
+                ig_uploaded = storage_uploader.upload_video(ig_video_path, f"{video_title} (Hinglish)", category)
+                if ig_uploaded:
+                    ig_storage_url = ig_uploaded
+
             # 6, 7 & 8: Simultaneous Distribution (YouTube Shorts, Instagram Reels & Facebook)
             yt_res = None
             ig_url = None
@@ -166,7 +174,8 @@ class PipelineOrchestrator:
                 telegram_agent.send_message(
                     f"🛑 *Video Job #{job_id} Completed & Held!*\n\n"
                     f"🎬 *Title:* {video_title}\n"
-                    f"☁️ *Telegram Storage:* {storage_url}\n\n"
+                    f"☁️ *Telegram Storage (EN):* {storage_url}\n"
+                    f"☁️ *Telegram Storage (Hinglish):* {ig_storage_url}\n\n"
                     f"Public posting is PAUSED. Say *'post now'* or `/resume` to publish."
                 )
                 yt_url = "Held (Paused by User via Telegram)"
@@ -176,10 +185,10 @@ class PipelineOrchestrator:
                     return youtube_uploader.upload_short(video_path, video_title, description, tags)
 
                 def task_instagram():
-                    return instagram_uploader.post_reel(ig_video_path, storage_url, video_title, hindi_caption)
+                    return instagram_uploader.post_reel(ig_video_path, ig_storage_url, video_title, hindi_caption)
 
                 def task_facebook():
-                    return facebook_uploader.post_video_reel(video_path, storage_url, video_title, script_text)
+                    return facebook_uploader.post_video_reel(ig_video_path, ig_storage_url, video_title, hindi_caption)
 
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pub_executor:
                     future_yt = pub_executor.submit(task_youtube)

@@ -38,7 +38,24 @@ class StorageUploader:
                         msg_id = data["result"]["message_id"]
                         file_id = data["result"]["video"]["file_id"]
 
-                        # Format channel message link if chat_id starts with -100
+                        # 1. Fetch direct public video download URL for Meta Graph API / web ingestion
+                        try:
+                            file_info_resp = requests.get(
+                                f"https://api.telegram.org/bot{self.bot_token}/getFile",
+                                params={"file_id": file_id},
+                                timeout=15
+                            )
+                            if file_info_resp.status_code == 200:
+                                f_data = file_info_resp.json()
+                                if f_data.get("ok"):
+                                    f_path = f_data["result"]["file_path"]
+                                    direct_dl_url = f"https://api.telegram.org/file/bot{self.bot_token}/{f_path}"
+                                    db.log("INFO", "Storage", f"Telegram direct public media URL ready: {direct_dl_url}")
+                                    return direct_dl_url
+                        except Exception as e_dl:
+                            db.log("WARNING", "Storage", f"Could not resolve Telegram direct URL: {e_dl}")
+
+                        # 2. Format channel message link if chat_id starts with -100
                         clean_channel = str(self.chat_id).replace("-100", "")
                         storage_link = f"https://t.me/c/{clean_channel}/{msg_id}"
 
