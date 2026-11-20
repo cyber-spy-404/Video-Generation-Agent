@@ -1152,6 +1152,11 @@
               </td>
               <td>
                 <div style="display: inline-flex; gap: 6px; align-items: center;">
+                  {% if v.status == 'error' or v.status == 'failed' %}
+                  <button class="link-pill" onclick="retryVideo({{ v.id }})" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.12); font-weight: 600;" title="Re-initiate and retry failed video job">
+                    🔄 Re-initiate
+                  </button>
+                  {% endif %}
                   <button class="link-pill btn-preview" onclick="openPreviewModal({{ v.id }})" title="Preview 9:16 Video">
                     ▶️ Preview
                   </button>
@@ -1270,7 +1275,10 @@
             <span class="detail-label">Script Breakdown</span>
             <span class="detail-text" id="modal-video-script" style="max-height: 120px; overflow-y: auto;">--</span>
           </div>
-          <div style="display: flex; gap: var(--space-2); margin-top: auto;">
+          <div style="display: flex; gap: var(--space-2); margin-top: auto; flex-wrap: wrap;">
+            <button id="modal-btn-retry" onclick="retryVideoFromModal()" class="btn btn-secondary" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.1);" title="Re-initiate and retry video job">
+              🔄 Re-initiate
+            </button>
             <a id="modal-btn-storage" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="flex: 1;">
               ☁️ Cloud Link
             </a>
@@ -1458,6 +1466,32 @@
       modal.classList.remove("active");
       document.body.style.overflow = "";
       currentPreviewJobId = null;
+    }
+
+    async function retryVideo(jobId) {
+      if (!confirm(`Are you sure you want to re-initiate and retry Video Job #${jobId}?\n\nThis will re-run script generation, neural voiceover, and distribution across YouTube, Instagram, and Facebook.`)) {
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/video/${jobId}/retry`, { method: "POST" });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert(res.message || `Job #${jobId} re-initiated! Production is running in the background.`);
+          window.location.reload();
+        } else {
+          alert("Error: " + (res.detail || res.message || "Failed to re-initiate"));
+        }
+      } catch (err) {
+        alert("Error re-initiating video: " + err.message);
+      }
+    }
+
+    async function retryVideoFromModal() {
+      if (currentPreviewJobId) {
+        const targetId = currentPreviewJobId;
+        closePreviewModal();
+        await retryVideo(targetId);
+      }
     }
 
     async function deleteVideo(jobId) {

@@ -81,6 +81,7 @@ class TelegramAIAgent:
                 "• *'don't post'* or `/pause` — Pause auto-publishing to YouTube & Instagram\n"
                 "• *'resume'* or `/resume` — Unpause and resume scheduled publishing\n"
                 "• *'preview'* — Upload the latest MP4 video directly to this chat\n"
+                "• *'retry <job_id>'* or `/retry <job_id>` — Re-initiate and retry a failed video job\n"
                 "• *'delete <job_id>'* or `/delete <job_id>` — Delete a video job and remove its files\n"
                 "• *'repost adding <note>'* — Re-upload or edit a video with custom hashtags/text\n\n"
                 "_You can speak to me in plain English! Example: 'make video on Pegasus spyware'_"
@@ -165,6 +166,50 @@ class TelegramAIAgent:
                 f"• *Title:* {video.get('title', '--')}\n"
                 f"• Cleaned up rendered MP4, audio voiceovers, and subtitles from server storage."
             )
+            return
+
+        # 4C. Re-initiate / Retry Video Job ("retry <id>", "/retry <id>", "reinitiate <id>")
+        retry_match = re.search(r"(?:/retry|retry\s+video|retry\s+job|retry|reinitiate|re-initiate)\s+(\d+)", text_lower)
+        if retry_match:
+            job_id = int(retry_match.group(1))
+            video = db.get_video(job_id)
+            if not video:
+                self.send_message(f"❌ *Video Job #{job_id} not found in database.*")
+                return
+
+            self.send_message(
+                f"🔄 *Re-initiating Video Job #{job_id}!*\n\n"
+                f"• *Title:* {video.get('title', '--')}\n"
+                f"• *Status:* Resetting to queued and rerunning production pipeline in background..."
+            )
+
+            def retry_worker(jid: int):
+                import os
+                from modules.pipeline import pipeline
+                try:
+                    res = pipeline.retry_video_job(jid)
+                    if res and res.get("status") == "completed":
+                        yt_url = res.get("youtube_url", "")
+                        ig_url = res.get("instagram_url", "")
+                        cloud_url = res.get("storage_url", "")
+                        vpath = res.get("video_path", "")
+                        done_msg = (
+                            f"✅ *Job #{jid} Successfully Re-produced & Distributed!*\n\n"
+                            f"🎬 *Title:* {res.get('title')}\n"
+                            f"▶️ *YouTube Shorts:* {yt_url or 'Published'}\n"
+                            f"📸 *Instagram Reels:* {ig_url or 'Published'}\n"
+                            f"☁️ *Cloud Storage:* {cloud_url}"
+                        )
+                        self.send_message(done_msg)
+                        if vpath and os.path.exists(vpath):
+                            self.send_video_preview(vpath, f"🎬 {res.get('title')}")
+                    else:
+                        err = res.get("error_message") if res else "Unknown pipeline error"
+                        self.send_message(f"⚠️ *Job #{jid} Retry Finished with Issues:*\n{err}")
+                except Exception as ex:
+                    self.send_message(f"⚠️ *Retry worker exception for Job #{jid}:* {ex}")
+
+            threading.Thread(target=retry_worker, args=(job_id,), daemon=True).start()
             return
 
         # 5. Custom Topic / Prompt Creation ("make video on <topic>", "/prompt <topic>", "/create <topic>")

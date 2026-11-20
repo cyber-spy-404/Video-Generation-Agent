@@ -202,6 +202,21 @@ async def delete_video_api(job_id: int):
         "message": f"Video job #{job_id} and all rendered media files have been deleted successfully."
     })
 
+@app.post("/api/video/{job_id}/retry")
+async def retry_video_api(job_id: int, background_tasks: BackgroundTasks):
+    """Re-initiates and reruns a failed video job in the background."""
+    video = db.get_video(job_id)
+    if not video:
+        raise HTTPException(status_code=404, detail=f"Video job #{job_id} not found.")
+
+    background_tasks.add_task(pipeline.retry_video_job, job_id=job_id)
+    db.log("INFO", "WebDashboard", f"Re-initiate requested for Job #{job_id} ('{video.get('title', '')[:40]}')")
+
+    return JSONResponse({
+        "status": "success",
+        "message": f"Job #{job_id} has been re-initiated! Production is running in the background."
+    })
+
 @app.get("/api/stats")
 async def get_stats_api():
     return JSONResponse(db.get_stats())

@@ -145,6 +145,13 @@ class Database:
                 )
             return [dict(row) for row in cursor.fetchall()]
 
+    def get_article(self, url: str) -> Optional[Dict[str, Any]]:
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM articles WHERE url = ?", (url,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
     def update_article_status(self, url: str, status: str):
         with self.get_connection() as conn:
             conn.execute("UPDATE articles SET status = ? WHERE url = ?", (status, url))

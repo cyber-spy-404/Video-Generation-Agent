@@ -23,7 +23,12 @@ class PipelineOrchestrator:
         self.max_concurrent = max_concurrent
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent)
 
-    def process_article(self, article: Dict[str, Any], bypass_daily_cap: bool = False) -> Optional[Dict[str, Any]]:
+    def process_article(
+        self,
+        article: Dict[str, Any],
+        bypass_daily_cap: bool = False,
+        existing_job_id: Optional[int] = None
+    ) -> Optional[Dict[str, Any]]:
         """
         Executes complete production lifecycle for a single cybersecurity / tech news story:
         1. Scripting -> 2. Audio -> 3. Subtitles -> 4. Composition ->
@@ -43,8 +48,14 @@ class PipelineOrchestrator:
             )
             return None
 
-        db.log("INFO", "Pipeline", f"Initiating production for: {title[:60]}... (Today's count: {completed_today}/{config.MAX_VIDEOS_PER_DAY})")
-        job_id = db.create_video_job(title=title, article_url=article_url)
+        if existing_job_id is not None:
+            job_id = existing_job_id
+            db.update_video(job_id, status="queued", error_message=None)
+            db.log("INFO", "Pipeline", f"Re-initiating production for Job #{job_id}: '{title[:50]}'...")
+        else:
+            job_id = db.create_video_job(title=title, article_url=article_url)
+            db.log("INFO", "Pipeline", f"Initiating production for: {title[:60]}... (Today's count: {completed_today}/{config.MAX_VIDEOS_PER_DAY})")
+
         db.update_article_status(article_url, "processing")
 
         try:
@@ -383,6 +394,38 @@ class PipelineOrchestrator:
         db.insert_article(article)
         db.log("INFO", "Pipeline", f"Received custom prompt from owner: '{clean_prompt}'. Launching immediate production cycle...")
         return self.process_article(article, bypass_daily_cap=bypass_daily_cap)
+
+    def retry_video_job(self, job_id: int) -> Optional[Dict[str, Any]]:
+        """
+        Re-initiates and retries a failed (or stalled) video job.
+        Bypasses daily limit cap so retrying a failed job is never blocked.
+        """
+        video = db.get_video(job_id)
+        if not video:
+            db.log("WARNING", "Pipeline", f"Cannot retry Job #{job_id}: record not found in database.")
+            return None
+
+        article_url = video.get("article_url")
+        article = None
+        if article_url:
+            article = db.get_article(article_url)
+
+        if not article:
+            import time
+            from datetime import datetime
+            article = {
+                "url": article_url or f"retry://job/{job_id}/{int(time.time())}",
+                "title": video.get("title", "Retried Security Report"),
+                "source": "Manual Re-initiate",
+                "category": "Offensive Cybersecurity",
+                "summary": video.get("script") or video.get("title") or "Retried job execution",
+                "published_at": datetime.utcnow().isoformat(),
+                "discovered_at": datetime.utcnow().isoformat(),
+                "status": "processing"
+            }
+
+        db.log("INFO", "Pipeline", f"Re-initiating production for failed Job #{job_id} ('{article['title'][:50]}')...")
+        return self.process_article(article, bypass_daily_cap=True, existing_job_id=job_id)
 
 pipeline = PipelineOrchestrator()
 
