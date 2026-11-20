@@ -78,6 +78,36 @@ def run_diagnostics():
     sheet_link = sheets_sync.get_sheet_link()
     print(f"    Active Sheet / Template: {sheet_link}")
 
+    # 8. Test Meta Graph API (Facebook & Instagram)
+    print("\n[8] Testing Meta Graph API (Facebook & Instagram)...")
+    import requests
+    from config import FACEBOOK_PAGE_ID, FACEBOOK_PAGE_ACCESS_TOKEN, INSTAGRAM_ACCOUNT_ID, INSTAGRAM_ACCESS_TOKEN
+    
+    if FACEBOOK_PAGE_ID and FACEBOOK_PAGE_ACCESS_TOKEN:
+        try:
+            r = requests.get(f"https://graph.facebook.com/v21.0/{FACEBOOK_PAGE_ID}?fields=id,name&access_token={FACEBOOK_PAGE_ACCESS_TOKEN}", timeout=10)
+            if r.status_code == 200:
+                print(f"    ✅ Facebook Page Connected: {r.json().get('name')} (ID: {FACEBOOK_PAGE_ID})")
+            else:
+                print(f"    ❌ Facebook Page Error: {r.text[:120]}")
+        except Exception as e:
+            print(f"    ❌ Facebook Connection Exception: {e}")
+    else:
+        print("    ℹ️ Facebook Page ID or Token not configured.")
+
+    if INSTAGRAM_ACCOUNT_ID and INSTAGRAM_ACCESS_TOKEN:
+        try:
+            r = requests.get(f"https://graph.facebook.com/v21.0/{INSTAGRAM_ACCOUNT_ID}?fields=id,username,name&access_token={INSTAGRAM_ACCESS_TOKEN}", timeout=10)
+            if r.status_code == 200:
+                ig_data = r.json()
+                print(f"    ✅ Instagram Business Connected: @{ig_data.get('username')} ({ig_data.get('name')})")
+            else:
+                print(f"    ❌ Instagram Error: {r.text[:120]}")
+        except Exception as e:
+            print(f"    ❌ Instagram Connection Exception: {e}")
+    else:
+        print("    ℹ️ Instagram Account ID or Token not configured.")
+
     print("\n======================================================================")
     print("✅ DIAGNOSTICS COMPLETE!")
     print("======================================================================")
