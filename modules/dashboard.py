@@ -249,7 +249,7 @@ async def get_videos_api(limit: int = 50):
     return JSONResponse(db.get_all_videos(limit=limit))
 
 @app.get("/api/logs")
-async def get_logs_api(limit: int = 30):
+async def get_logs_api(limit: int = 80):
     return JSONResponse(db.get_recent_logs(limit=limit))
 
 @app.get("/api/schedule")

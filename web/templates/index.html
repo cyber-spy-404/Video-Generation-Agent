@@ -780,6 +780,34 @@
       color: #fbbf24;
     }
 
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #10b981;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      letter-spacing: 0.05em;
+      vertical-align: middle;
+      margin-left: 8px;
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: live-pulse 1.8s infinite;
+    }
+    @keyframes live-pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1.15); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
     /* =====================================================================
        VIDEO PREVIEW MODAL (Accessible & Focus Trapped)
        ===================================================================== */
@@ -1135,7 +1163,7 @@
               <th>Facebook Reel</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="video-table-body">
             {% for v in videos %}
             <tr>
               <td class="tabular">#{{ v.id }}</td>
@@ -1223,7 +1251,10 @@
     <!-- 6. Real-time Telemetry & Live Terminal Logs -->
     <section class="section-card" aria-label="System Telemetry">
       <div class="section-header">
-        <h2 class="section-title">Live System Telemetry & Console Logs</h2>
+        <h2 class="section-title">
+          Live System Telemetry & Console Logs
+          <span class="live-badge"><span class="live-dot"></span> LIVE TELEMETRY</span>
+        </h2>
         <div class="terminal-controls">
           <button class="filter-btn active" onclick="filterLogs('ALL')">All</button>
           <button class="filter-btn" onclick="filterLogs('INFO')">Info</button>
@@ -1569,14 +1600,24 @@
       }
     });
 
-    // 7. Live Terminal Filter & Refresh
-    function filterLogs(level) {
-      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-      event.target.classList.add("active");
+    // 7. Live Real-Time Terminal Logs & Filter
+    let currentFilter = 'ALL';
+    let lastKnownLogSignature = "";
+    let lastKnownVideosSignature = "";
 
+    function filterLogs(level) {
+      currentFilter = level;
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      if (window.event && window.event.target) {
+        window.event.target.classList.add("active");
+      }
+      applyFilterToRows();
+    }
+
+    function applyFilterToRows() {
       const rows = document.querySelectorAll(".log-row");
       rows.forEach(r => {
-        if (level === "ALL" || r.dataset.level === level) {
+        if (currentFilter === "ALL" || r.dataset.level === currentFilter) {
           r.style.display = "flex";
         } else {
           r.style.display = "none";
@@ -1586,6 +1627,7 @@
 
     function copyLogs() {
       const logs = Array.from(document.querySelectorAll(".log-row"))
+        .filter(r => r.style.display !== "none")
         .map(r => r.innerText.replace(/\s+/g, ' ').trim())
         .join("\n");
       navigator.clipboard.writeText(logs).then(() => {
@@ -1593,7 +1635,123 @@
       });
     }
 
-    // 8. Background Poller for Telemetry
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function pollLiveLogs() {
+      try {
+        const resp = await fetch("/api/logs?limit=80");
+        if (!resp.ok) return;
+        const logs = await resp.json();
+        if (!Array.isArray(logs) || logs.length === 0) return;
+
+        // Unique signature to avoid re-rendering DOM if no new logs
+        const signature = logs.map(l => l.id + "-" + l.timestamp).join(",");
+        if (signature === lastKnownLogSignature) return;
+        lastKnownLogSignature = signature;
+
+        const terminal = document.getElementById("terminal-logs");
+        if (!terminal) return;
+
+        // Detect if user is scrolled near bottom
+        const isNearBottom = terminal.scrollHeight - terminal.clientHeight <= terminal.scrollTop + 60;
+
+        // DB returns logs ordered DESC (newest first); reverse to render chronologically top-to-bottom
+        const chronoLogs = [...logs].reverse();
+
+        terminal.innerHTML = chronoLogs.map(log => {
+          const time = (log.timestamp || "").length >= 19 ? log.timestamp.substring(11, 19) : (log.timestamp || "");
+          const lvl = (log.level || "INFO").toLowerCase();
+          const disp = (currentFilter === "ALL" || log.level === currentFilter) ? "flex" : "none";
+          return `<div class="log-row log-${lvl}" data-level="${log.level}" style="display: ${disp};">
+            <span class="log-time tabular">${time}</span>
+            <span class="log-module">[${log.module || 'System'}]</span>
+            <span class="log-msg">${escapeHtml(log.message || '')}</span>
+          </div>`;
+        }).join("");
+
+        if (isNearBottom) {
+          terminal.scrollTop = terminal.scrollHeight;
+        }
+      } catch (e) {
+        // Silent failure for polling
+      }
+    }
+
+    // 8. Live Video Queue Refresh
+    async function pollLiveVideos() {
+      try {
+        const resp = await fetch("/api/videos?limit=25");
+        if (!resp.ok) return;
+        const videos = await resp.json();
+        if (!Array.isArray(videos)) return;
+
+        const signature = videos.map(v => `${v.id}-${v.status}-${v.youtube_url}-${v.instagram_url}-${v.facebook_url}`).join("|");
+        if (signature === lastKnownVideosSignature) return;
+        lastKnownVideosSignature = signature;
+
+        const tbody = document.getElementById("video-table-body");
+        if (!tbody || videos.length === 0) return;
+
+        tbody.innerHTML = videos.map(v => {
+          const dateStr = (v.created_at || "").substring(0, 16).replace('T', ' ');
+          const isFailed = v.status === 'error' || v.status === 'failed';
+          const retryBtn = isFailed ? `
+            <button class="link-pill" onclick="retryVideo(${v.id})" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.12); font-weight: 600;" title="Re-initiate and retry failed video job">
+              🔄 Re-initiate
+            </button>` : '';
+
+          const storageLink = v.storage_url ? `
+            <a href="${v.storage_url}" target="_blank" rel="noopener noreferrer" class="link-pill">
+              ☁️ Storage
+            </a>` : `<span style="color: var(--color-text-muted);">-</span>`;
+
+          const ytLink = v.youtube_url && v.youtube_url.startsWith('http') ? `
+            <a href="${v.youtube_url}" target="_blank" rel="noopener noreferrer" class="link-pill">
+              ▶️ YT Short
+            </a>` : `<span style="color: var(--color-text-muted);">-</span>`;
+
+          const igLink = v.instagram_url && v.instagram_url.startsWith('http') ? `
+            <a href="${v.instagram_url}" target="_blank" rel="noopener noreferrer" class="link-pill">
+              📸 IG Reel
+            </a>` : `<span style="color: var(--color-text-muted);">-</span>`;
+
+          const fbLink = v.facebook_url && v.facebook_url.startsWith('http') ? `
+            <a href="${v.facebook_url}" target="_blank" rel="noopener noreferrer" class="link-pill">
+              📘 FB Reel
+            </a>` : `<span style="color: var(--color-text-muted);">-</span>`;
+
+          return `<tr>
+            <td class="tabular">#${v.id}</td>
+            <td class="tabular" style="color: var(--color-text-secondary); font-size: 13px;">${dateStr}</td>
+            <td style="font-weight: 600; max-width: 320px;">${escapeHtml(v.title || '')}</td>
+            <td><span class="badge badge-status-${v.status}">${(v.status || '').toUpperCase()}</span></td>
+            <td>
+              <div style="display: inline-flex; gap: 6px; align-items: center;">
+                ${retryBtn}
+                <button class="link-pill btn-preview" onclick="openPreviewModal(${v.id})" title="Preview 9:16 Video">
+                  ▶️ Preview
+                </button>
+                <button class="link-pill" onclick="deleteVideo(${v.id})" style="color: #f87171; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.08);" title="Delete video job and disk files">
+                  🗑️ Delete
+                </button>
+              </div>
+            </td>
+            <td>${storageLink}</td>
+            <td>${ytLink}</td>
+            <td>${igLink}</td>
+            <td>${fbLink}</td>
+          </tr>`;
+        }).join("");
+      } catch (e) {
+        // Silent failure
+      }
+    }
+
+    // 9. Background Poller for Telemetry
     async function refreshStats() {
       try {
         const resp = await fetch("/api/system-state");
@@ -1615,7 +1773,12 @@
       } catch (e) {}
     }
 
-    // Poll every 10 seconds
+    // Polling schedules:
+    // Live logs every 2.5 seconds for instant real-time telemetry streaming
+    setInterval(pollLiveLogs, 2500);
+    // Videos table updates every 5 seconds
+    setInterval(pollLiveVideos, 5000);
+    // Stats & count timers every 10 seconds
     setInterval(refreshStats, 10000);
   </script>
 

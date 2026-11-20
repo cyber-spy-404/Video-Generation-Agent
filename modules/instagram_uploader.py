@@ -195,7 +195,11 @@ class InstagramUploader:
         try:
             init_resp = requests.post(init_url, data=payload, timeout=30)
             if init_resp.status_code != 200:
-                db.log("WARNING", "Instagram", f"Resumable init failed HTTP {init_resp.status_code}: {init_resp.text[:200]}")
+                err_text = init_resp.text
+                if "instagram_content_publish" in err_text or '"code":10' in err_text:
+                    db.log("ERROR", "Instagram", "Meta Permission Error: Your access token lacks 'instagram_content_publish'. Please grant this permission in Graph API Explorer or Meta App permissions.")
+                else:
+                    db.log("WARNING", "Instagram", f"Resumable init failed HTTP {init_resp.status_code}: {err_text[:200]}")
                 return None
             init_data = init_resp.json()
             container_id = init_data.get("id")

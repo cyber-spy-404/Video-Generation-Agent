@@ -79,7 +79,7 @@ class Database:
             """)
 
             # Auto-migrate any new columns
-            for col in ["facebook_id", "facebook_url"]:
+            for col in ["facebook_id", "facebook_url", "ig_storage_url", "ig_video_path"]:
                 try:
                     cursor.execute(f"ALTER TABLE videos ADD COLUMN {col} TEXT;")
                 except Exception:

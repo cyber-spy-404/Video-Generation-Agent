@@ -166,7 +166,8 @@ class VideoCompositor:
             output_path=str(bg_video),
             ffmpeg_bin=self.ffmpeg_bin,
             script_text=script_text,
-            word_timings=word_timings
+            word_timings=word_timings,
+            job_id=job_id
         )
         return str(bg_video)
 

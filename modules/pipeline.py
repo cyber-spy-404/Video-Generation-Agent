@@ -173,6 +173,7 @@ class PipelineOrchestrator:
                 ig_uploaded = storage_uploader.upload_video(ig_video_path, f"{video_title} (Hinglish)", category)
                 if ig_uploaded:
                     ig_storage_url = ig_uploaded
+            db.update_video(job_id, ig_storage_url=ig_storage_url, ig_video_path=ig_video_path)
 
             # 6, 7 & 8: Simultaneous Distribution (YouTube Shorts, Instagram Reels & Facebook)
             yt_res = None
@@ -278,6 +279,25 @@ class PipelineOrchestrator:
                 status="completed"
             )
             db.update_article_status(article_url, "completed")
+
+            # Evaluate distribution success across enabled platforms
+            yt_ok = bool(yt_url)
+            ig_ok = bool(ig_url) or not config.INSTAGRAM_AUTO_POST
+            fb_ok = bool(fb_url) or not config.FACEBOOK_AUTO_POST
+            all_clean = (yt_ok and ig_ok and fb_ok)
+
+            if all_clean:
+                db.log("INFO", "Pipeline", f"All destination platforms posted successfully for Job #{job_id}. Cleaning up local temporary video files to preserve VPS disk space (permanent backup kept on Telegram Cloud).")
+                try:
+                    if video_path and os.path.exists(video_path):
+                        os.remove(video_path)
+                    if ig_video_path and ig_video_path != video_path and os.path.exists(ig_video_path):
+                        os.remove(ig_video_path)
+                except Exception as clean_err:
+                    db.log("WARNING", "Pipeline", f"Cleanup note: {clean_err}")
+            else:
+                db.log("INFO", "Pipeline", f"Notice: One or more platform uploads encountered an issue (YT:{yt_ok}, IG:{ig_ok}, FB:{fb_ok}). Local video preserved for later retry after fixing credentials.")
+
             db.log("INFO", "Pipeline", f"Job #{job_id} successfully produced and distributed!")
             return db.get_video(job_id)
 
@@ -438,19 +458,50 @@ class PipelineOrchestrator:
         if not video:
             return {"status": "error", "message": f"Job #{job_id} not found."}
 
-        # Determine video files
+        # Determine video files with auto-restoration from Cloud Storage if deleted
         video_path = video.get("video_path")
         if not video_path or not os.path.exists(video_path):
             video_path = str(VIDEOS_DIR / f"short_{job_id}.mp4")
 
-        ig_video_path = str(VIDEOS_DIR / f"short_instagram_{job_id}.mp4")
+        ig_video_path = video.get("ig_video_path") or str(VIDEOS_DIR / f"short_instagram_{job_id}.mp4")
+
+        # Auto-restore video from Telegram / Cloud Storage if file was previously cleaned up
+        storage_url = video.get("storage_url")
+        ig_storage_url = video.get("ig_storage_url") or storage_url
+
+        if not os.path.exists(video_path) and storage_url and storage_url.startswith("http"):
+            db.log("INFO", "Pipeline", f"Restoring short_{job_id}.mp4 from Cloud Storage ({storage_url[:50]}...) for retry...")
+            try:
+                import requests
+                r = requests.get(storage_url, stream=True, timeout=120)
+                if r.status_code == 200:
+                    with open(video_path, "wb") as f:
+                        for chunk in r.iter_content(chunk_size=65536):
+                            f.write(chunk)
+                    db.log("INFO", "Pipeline", f"Restored short_{job_id}.mp4 ({os.path.getsize(video_path)} bytes) from Cloud Storage.")
+            except Exception as dl_err:
+                db.log("WARNING", "Pipeline", f"Could not restore short_{job_id}.mp4 from storage: {dl_err}")
+
+        if not os.path.exists(ig_video_path) and ig_storage_url and ig_storage_url.startswith("http") and ig_storage_url != storage_url:
+            db.log("INFO", "Pipeline", f"Restoring short_instagram_{job_id}.mp4 from Cloud Storage for retry...")
+            try:
+                import requests
+                r = requests.get(ig_storage_url, stream=True, timeout=120)
+                if r.status_code == 200:
+                    with open(ig_video_path, "wb") as f:
+                        for chunk in r.iter_content(chunk_size=65536):
+                            f.write(chunk)
+                    db.log("INFO", "Pipeline", f"Restored short_instagram_{job_id}.mp4 from Cloud Storage.")
+            except Exception as dl_err:
+                db.log("WARNING", "Pipeline", f"Could not restore short_instagram_{job_id}.mp4 from storage: {dl_err}")
+
         if not os.path.exists(ig_video_path):
             ig_video_path = video_path
 
         if not os.path.exists(video_path):
             return {
                 "status": "error",
-                "message": f"Rendered video short_{job_id}.mp4 not found on server. Try clicking 'Re-initiate' first."
+                "message": f"Rendered video short_{job_id}.mp4 not found on server or cloud storage. Click 'Re-initiate' to rebuild it."
             }
 
         video_title = video.get("title", "The Spy Cyber Security Report")
@@ -507,6 +558,22 @@ class PipelineOrchestrator:
                 results["facebook"] = fb_res
             else:
                 results["facebook"] = "Failed (check Facebook credentials or logs)"
+
+        # Check if all destination platforms are now successfully published
+        latest_video = db.get_video(job_id) or {}
+        yt_done = bool(latest_video.get("youtube_url") and latest_video.get("youtube_url", "").startswith("http"))
+        ig_done = bool(latest_video.get("instagram_url") and latest_video.get("instagram_url", "").startswith("http")) or not config.INSTAGRAM_AUTO_POST
+        fb_done = bool(latest_video.get("facebook_url") and latest_video.get("facebook_url", "").startswith("http")) or not config.FACEBOOK_AUTO_POST
+
+        if yt_done and ig_done and fb_done:
+            db.log("INFO", "Pipeline", f"All platforms now published for Job #{job_id}. Cleaning up local MP4 files to preserve VPS space (Telegram Cloud backup preserved).")
+            try:
+                if video_path and os.path.exists(video_path):
+                    os.remove(video_path)
+                if ig_video_path and ig_video_path != video_path and os.path.exists(ig_video_path):
+                    os.remove(ig_video_path)
+            except Exception as ce:
+                db.log("WARNING", "Pipeline", f"Cleanup note: {ce}")
 
         db.log("INFO", "Pipeline", f"Manual publish finished for Job #{job_id}: {results}")
         return {
