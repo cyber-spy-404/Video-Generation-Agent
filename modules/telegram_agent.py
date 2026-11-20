@@ -104,7 +104,7 @@ class TelegramAIAgent:
                 f"• *Instagram & FB (IST Peak):* `{', '.join(ts_summary['instagram_fb_best_times_ist'])} IST`\n"
                 f"  └ *Next Drop:* `{ts_summary['next_instagram_slot_ist']}` (in {ts_summary['instagram_countdown']})\n\n"
                 f"• *Active Time:* `{ts_summary['current_utc']}` | `{ts_summary['current_ist']}`\n"
-                f"• *YouTube Channel:* `Technical Warning`\n"
+                f"• *YouTube Channel:* `The Spy`\n"
                 f"• *Languages:* `English (YT) | Hindi Speech + Hinglish Subtitles (IG/FB)`\n"
                 f"• *Free Storage:* `Connected (@VideoGenSpy_bot)`\n"
                 f"• *Google Sheets & Discord:* `Active 🟢`"

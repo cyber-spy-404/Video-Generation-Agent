@@ -112,10 +112,10 @@ class VideoCompositor:
         draw.rounded_rectangle(badge_box, radius=12, fill=badge_fill)
         draw.text((105, 75), f"{badge_icon} {category.upper()}", fill=(255, 255, 255, 255), font=font_badge)
 
-        # Channel Branding Tag matching reference reel (>_ TECHNICAL WARNING)
+        # Channel Branding Tag matching reference reel (>_ THE SPY)
         accent_rgb = border_color[:3] if len(border_color) >= 3 else (168, 85, 247)
-        draw.rounded_rectangle([470, 65, 840, 115], radius=12, fill=(20, 28, 48, 240), outline=(accent_rgb[0], accent_rgb[1], accent_rgb[2], 180), width=1)
-        draw.text((485, 75), ">_ TECHNICAL WARNING", fill=accent_rgb, font=font_badge)
+        draw.rounded_rectangle([470, 65, 750, 115], radius=12, fill=(20, 28, 48, 240), outline=(accent_rgb[0], accent_rgb[1], accent_rgb[2], 180), width=1)
+        draw.text((485, 75), ">_ THE SPY", fill=accent_rgb, font=font_badge)
 
         # Two-Tone Headline text wrapping
         words = title.split()

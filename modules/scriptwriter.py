@@ -125,7 +125,7 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
                 f"Attackers use advanced infiltration techniques to bypass standard security filters, exploit hidden loopholes, "
                 f"and gain unauthorized administrative control before anyone notices. "
                 f"Understanding these attack vectors is the first step to defending your systems and personal accounts. "
-                f"Follow Technical Warning to stay protected against the latest cyber threats and security exploits."
+                f"Follow The Spy to stay protected against the latest cyber threats and security exploits."
             )
             full_script = f"{hook} {body}".strip()
             clean_title = f"{title[:45]} Breakdown! 🚨 #Shorts"
@@ -134,7 +134,7 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
                 "hook": hook,
                 "script": full_script,
                 "tags": ["cybersecurity", "tech", "shorts", "hacking", "infosec"],
-                "description": f"Full security breakdown on {title}. Subscribe to Technical Warning for daily cyber threat alerts! #Shorts #CyberSecurity",
+                "description": f"Full security breakdown on {title}. Subscribe to The Spy for daily cyber threat alerts! #Shorts #CyberSecurity",
                 "key_used": "Built-in Procedural Tech Generator (Zero Quota)"
             }
 
@@ -144,7 +144,7 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
                 f"Here is why everyone is talking about {title[:50]}. Researchers have introduced a game-changing "
                 f"architecture that dramatically slashes compute costs while outperforming closed-source models across key reasoning benchmarks. "
                 f"From deep reasoning tokens to open-weights accessibility, this release completely changes how developers build AI applications. "
-                f"The moat around big tech is evaporating. Subscribe to Technical Warning for daily frontier AI and tech breakdowns."
+                f"The moat around big tech is evaporating. Subscribe to The Spy for daily frontier AI and tech breakdowns."
             )
             full_script = f"{hook} {body}".strip()
             clean_title = f"{title[:45]} Breakdown! 🤖 #Shorts"
@@ -153,7 +153,7 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
                 "hook": hook,
                 "script": full_script,
                 "tags": ["artificialintelligence", "ai", "deepseek", "llm", "shorts", "tech"],
-                "description": f"Frontier AI analysis on {title}. Subscribe to Technical Warning! #Shorts #AI #Technology",
+                "description": f"Frontier AI analysis on {title}. Subscribe to The Spy! #Shorts #AI #Technology",
                 "key_used": "Built-in Procedural Tech Generator (Zero Quota)"
             }
 
@@ -387,13 +387,13 @@ Output pure JSON only:
                 f"आज हम बात कर रहे हैं {title[:45]} के बारे में, जो इस वक्त काफी चर्चा में है। "
                 f"साइबर एक्सपर्ट्स और एथिकल हैकर्स ने इसके खतरनाक इनफिल्ट्रेशन और अटैक वेक्टर्स का खुलासा किया है। "
                 f"अटैकर्स नए लूपहोल्स का फायदा उठाकर डेटा और प्राइवेसी को बड़ा नुकसान पहुंचा सकते हैं। "
-                f"साइबर खतरों से सुरक्षित रहने के लिए टेक्निकल वॉर्निंग को फॉलो करें और अपने सिस्टम्स को हमेशा अपडेट रखें।"
+                f"साइबर खतरों से सुरक्षित रहने के लिए The Spy को फॉलो करें और अपने सिस्टम्स को हमेशा अपडेट रखें।"
             )
             hinglish_subtitles = (
                 f"Aaj hum baat kar rahe hain {title[:45]} ke baare mein, jo is waqt kafi charcha mein hai. "
                 f"Cyber experts aur ethical hackers ne iske dangerous infiltration attack vectors ka khulasa kiya hai. "
                 f"Attackers naye loopholes ka fayda uthakar data aur privacy ko bada nuksan pahuncha sakte hain. "
-                f"Cyber threats se safe rehne ke liye Technical Warning ko follow karein aur apne systems ko update rakhein."
+                f"Cyber threats se safe rehne ke liye The Spy ko follow karein aur apne systems ko update rakhein."
             )
             return {
                 "title": f"🚨 {title[:40]} Breakdown! #Shorts #Reels",
@@ -410,20 +410,20 @@ Output pure JSON only:
                 f"आर्टिफिशियल इंटेलिजेंस की दुनिया में एक ऐसा बड़ा धमाका हुआ है जिसने सिलिकॉन वैली को हिला कर रख दिया है। "
                 f"हम बात कर रहे हैं {clean_title} के बारे में। रिसर्चर्स ने ऐसा आर्किटेक्चर तैयार किया है जो पुराने सभी मॉडल्स को पीछे छोड़ रहा है। "
                 f"कम लागत और ज्यादा एक्यूरेसी के साथ यह टेक्नोलॉजी एआई के भविष्य को पूरी तरह से बदल रही है। "
-                f"डेली एआई अपडेट्स और टेक ब्रेकडाउन के लिए टेक्निकल वॉर्निंग को जरूर फॉलो करें।"
+                f"डेली एआई अपडेट्स और टेक ब्रेकडाउन के लिए The Spy को जरूर फॉलो करें।"
             )
             hinglish_subtitles = (
                 f"Artificial intelligence ki duniya mein ek aisa bada dhamaka hua hai jisne Silicon Valley ko hila kar rakh diya hai. "
                 f"Hum baat kar rahe hain {clean_title} ke baare mein. Researchers ne aisa architecture launch kiya hai jo puraane sabhi models ko peeche chhod raha hai. "
                 f"Kam cost aur high accuracy ke sath yeh technology AI ke future ko badal rahi hai. "
-                f"Daily AI updates aur tech breakdowns ke liye Technical Warning ko zaroor follow karein."
+                f"Daily AI updates aur tech breakdowns ke liye The Spy ko zaroor follow karein."
             )
             return {
                 "title": f"🚨 {clean_title} AI Shock! #Shorts #Reels",
                 "hook": "Artificial intelligence ki duniya mein ek aisa bada dhamaka hua hai",
                 "hindi_speech": hindi_speech,
                 "hinglish_subtitles": hinglish_subtitles,
-                "caption": f"Breaking frontier AI analysis on {clean_title}. Follow Technical Warning for daily AI and tech insights! #AI #DeepSeek #ChatGPT #Shorts #Tech #Reels"
+                "caption": f"Breaking frontier AI analysis on {clean_title}. Follow The Spy for daily AI and tech insights! #AI #DeepSeek #ChatGPT #Shorts #Tech #Reels"
             }
 
         hindi_speech = (

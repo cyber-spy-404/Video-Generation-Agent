@@ -58,7 +58,7 @@ ai_timeline = analyze_story_vibe_timeline(
     "DeepSeek just released an open-source model that crushed Silicon Valley benchmarks at 5% of the cost. "
     "Researchers bypassed traditional training methods using pure reinforcement learning and reasoning tokens. "
     "Google Authenticator and phone chips with 19 billion transistors show how offline math and hardware rule tech. "
-    "Follow Technical Warning for daily frontier AI and architecture deep dives.",
+    "Follow The Spy for daily frontier AI and architecture deep dives.",
     duration=40.0
 )
 for block in ai_timeline:

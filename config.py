@@ -75,6 +75,9 @@ AUTO_GENERATE_COUNT = int(os.getenv("AUTO_GENERATE_COUNT", "1"))
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
+# Channel Branding & Identity
+CHANNEL_NAME = os.getenv("CHANNEL_NAME", "The Spy").strip()
+
 # YouTube Studio
 YOUTUBE_CLIENT_SECRETS_FILE = os.getenv("YOUTUBE_CLIENT_SECRETS_FILE", "client_secrets.json")
 YOUTUBE_TOKEN_FILE = os.getenv("YOUTUBE_TOKEN_FILE", "token.json")

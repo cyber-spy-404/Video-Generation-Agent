@@ -53,12 +53,12 @@ def draw_hud_chrome(draw: ImageDraw.Draw, t: float, scene_label: str):
     pulse = int(140 + 115 * math.sin(t * 6))
     draw.rounded_rectangle([40, 35, WIDTH - 40, 165], radius=16, fill=(10, 14, 26, 240), outline=(168, 85, 247, pulse), width=2)
 
-    # Top Branding Header matching reference reel (>_ TECHNICAL WARNING)
+    # Top Branding Header matching reference reel (>_ THE SPY)
     draw.rounded_rectangle([55, 50, 480, 100], radius=10, fill=(18, 24, 42, 255), outline=(168, 85, 247, 180), width=1)
     # Cursor in neon purple / lavender
     draw.text((70, 58), ">_", fill=(168, 85, 247), font=font_brand)
     # Channel brand in crisp bold white
-    draw.text((115, 58), "TECHNICAL WARNING", fill=(255, 255, 255), font=font_brand)
+    draw.text((115, 58), "THE SPY", fill=(255, 255, 255), font=font_brand)
 
     # Telemetry Status Pill
     draw.rounded_rectangle([510, 50, WIDTH - 55, 100], radius=10, fill=(239, 68, 68, 230))
@@ -409,7 +409,7 @@ def render_scene_loop(frame_idx: int, t: float) -> Image.Image:
     d.text((100, 590), "🚨 ACTION REQUIRED: PATCH YOUR SYSTEMS NOW", fill=(255, 80, 80), font=font_bold)
     d.text((100, 670), "STAY AHEAD OF ZERO-DAY ATTACKS & EXPLOITS", fill=(255, 255, 255), font=font_bold)
     d.text((100, 750), "🔔 SUBSCRIBE & FOLLOW FOR DAILY CYBER THREAT BREAKDOWNS", fill=(250, 204, 21), font=font_bold)
-    d.text((100, 830), "TECHNICAL WARNING — DEFEND YOUR INFRASTRUCTURE", fill=(168, 85, 247), font=font_brand)
+    d.text((100, 830), "THE SPY — DEFEND YOUR INFRASTRUCTURE", fill=(168, 85, 247), font=font_brand)
 
     return img
 
