@@ -217,6 +217,29 @@ async def retry_video_api(job_id: int, background_tasks: BackgroundTasks):
         "message": f"Job #{job_id} has been re-initiated! Production is running in the background."
     })
 
+@app.post("/api/video/{job_id}/publish/{platform}")
+async def publish_video_platform_api(job_id: int, platform: str, background_tasks: BackgroundTasks):
+    """
+    Manually publishes a video to a specific platform (or all) immediately without fixed scheduled times.
+    platform: 'youtube' | 'instagram' | 'facebook' | 'all'
+    """
+    video = db.get_video(job_id)
+    if not video:
+        raise HTTPException(status_code=404, detail=f"Video job #{job_id} not found.")
+
+    target = platform.lower().strip()
+    valid_platforms = ["youtube", "instagram", "facebook", "all"]
+    if target not in valid_platforms:
+        raise HTTPException(status_code=400, detail=f"Invalid platform '{platform}'. Choose from: {valid_platforms}")
+
+    background_tasks.add_task(pipeline.publish_video_to_platform, job_id=job_id, platform=target, immediate=True)
+    db.log("INFO", "WebDashboard", f"Manual publish triggered for Job #{job_id} to {target.upper()} (Immediate, no fixed times)")
+
+    return JSONResponse({
+        "status": "success",
+        "message": f"Publishing Job #{job_id} to {target.upper()} immediately without fixed times! Check Live Telemetry for updates."
+    })
+
 @app.get("/api/stats")
 async def get_stats_api():
     return JSONResponse(db.get_stats())

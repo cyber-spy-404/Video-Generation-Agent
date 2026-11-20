@@ -1289,6 +1289,27 @@
               🗑️ Delete
             </button>
           </div>
+
+          <!-- Instant Manual Direct Post Controls (No Fixed Times) -->
+          <div style="margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--color-border);">
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+              <span>⚡ Direct Manual Post (Immediate &bull; No Fixed Times)</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+              <button onclick="manualPublish('youtube')" class="btn" style="background: rgba(239, 68, 68, 0.12); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.35); justify-content: center; font-size: 12px; padding: 7px 10px;" title="Post directly to YouTube Shorts as Public now">
+                ▶️ Post YouTube Now
+              </button>
+              <button onclick="manualPublish('instagram')" class="btn" style="background: rgba(236, 72, 153, 0.12); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.35); justify-content: center; font-size: 12px; padding: 7px 10px;" title="Post directly to Instagram Reels live now">
+                📸 Post Instagram Now
+              </button>
+              <button onclick="manualPublish('facebook')" class="btn" style="background: rgba(59, 130, 246, 0.12); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); justify-content: center; font-size: 12px; padding: 7px 10px;" title="Post directly to Facebook Page Reels live now">
+                📘 Post Facebook Now
+              </button>
+              <button onclick="manualPublish('all')" class="btn" style="background: rgba(6, 182, 212, 0.15); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.45); justify-content: center; font-size: 12px; padding: 7px 10px; font-weight: 700;" title="Post to all platforms simultaneously right now">
+                🚀 Post All Platforms Now
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1491,6 +1512,27 @@
         const targetId = currentPreviewJobId;
         closePreviewModal();
         await retryVideo(targetId);
+      }
+    }
+
+    async function manualPublish(platform) {
+      if (!currentPreviewJobId) return;
+      const targetId = currentPreviewJobId;
+      const platName = platform.toUpperCase();
+      if (!confirm(`Post Video Job #${targetId} to ${platName} immediately now without waiting for fixed schedule times?`)) {
+        return;
+      }
+      try {
+        const resp = await fetch(`/api/video/${targetId}/publish/${platform}`, { method: "POST" });
+        const res = await resp.json();
+        if (resp.ok) {
+          alert(res.message || `Job #${targetId} publishing to ${platName} initiated!`);
+          window.location.reload();
+        } else {
+          alert("Error: " + (res.detail || res.message || "Failed to publish"));
+        }
+      } catch (err) {
+        alert("Error publishing: " + err.message);
       }
     }
 

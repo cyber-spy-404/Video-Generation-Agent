@@ -25,11 +25,12 @@ class FacebookUploader:
         public_video_url: str,
         title: str,
         script: str,
-        scheduled_publish_time: Optional[int] = None
+        scheduled_publish_time: Optional[int] = None,
+        immediate: bool = False
     ) -> Optional[str]:
         """
         Publishes a vertical video / Reel to your Facebook Page using the Meta Graph API.
-        Supports automated IST Peak Timing scheduling (13:00 IST / 20:00 IST).
+        Supports automated IST Peak Timing scheduling or direct immediate publication.
         Returns: Facebook Reel/Video URL (e.g. https://www.facebook.com/watch/?v=123456789)
         """
         if not self.enabled:
@@ -52,7 +53,10 @@ class FacebookUploader:
 
         # Determine target IST schedule if applicable
         target_schedule_time = scheduled_publish_time
-        if target_schedule_time is None and self.schedule_mode == "scheduled":
+        if immediate:
+            target_schedule_time = None
+            db.log("INFO", "Facebook", "Direct Immediate Publication requested (No fixed time slots).")
+        elif target_schedule_time is None and self.schedule_mode == "scheduled":
             _, auto_ts, summary = timing_manager.get_next_instagram_ist_slot(self.post_times_ist)
             target_schedule_time = auto_ts
             db.log("INFO", "Facebook", f"Targeting IST drop slot: {summary}")

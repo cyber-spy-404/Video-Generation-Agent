@@ -49,15 +49,15 @@ BEST_POST_TIMES = [t.strip() for t in BEST_POST_TIMES_RAW.split(",") if t.strip(
 TIMEZONE = os.getenv("TIMEZONE", "Asia/Kolkata")
 MAX_VIDEOS_PER_DAY = int(os.getenv("MAX_VIDEOS_PER_DAY", "2"))
 
-# YouTube Timing (UTC Best Times)
+# YouTube Timing (UTC Best Times or Direct Immediate)
 YOUTUBE_POST_TIMES_UTC_RAW = os.getenv("YOUTUBE_POST_TIMES_UTC", "15:00,20:00")
 YOUTUBE_POST_TIMES_UTC = [t.strip() for t in YOUTUBE_POST_TIMES_UTC_RAW.split(",") if t.strip()]
-YOUTUBE_SCHEDULE_MODE = os.getenv("YOUTUBE_SCHEDULE_MODE", "scheduled").lower()  # "scheduled" or "immediate"
+YOUTUBE_SCHEDULE_MODE = os.getenv("YOUTUBE_SCHEDULE_MODE", "immediate").lower()  # "immediate" (direct public) or "scheduled" (UTC peak slots)
 
-# Instagram & Facebook Timing (IST Best Times)
+# Instagram & Facebook Timing (IST Best Times or Direct Immediate)
 INSTAGRAM_FB_POST_TIMES_IST_RAW = os.getenv("INSTAGRAM_FB_POST_TIMES_IST", "13:00,20:00")
 INSTAGRAM_FB_POST_TIMES_IST = [t.strip() for t in INSTAGRAM_FB_POST_TIMES_IST_RAW.split(",") if t.strip()]
-INSTAGRAM_FB_SCHEDULE_MODE = os.getenv("INSTAGRAM_FB_SCHEDULE_MODE", "best_times").lower()
+INSTAGRAM_FB_SCHEDULE_MODE = os.getenv("INSTAGRAM_FB_SCHEDULE_MODE", "immediate").lower()  # "immediate" (direct live) or "scheduled" (IST peak slots)
 
 # Voice & Typography Dynamic Rotation (Rotates voices, fonts & neon accents daily & per video)
 ROTATE_STYLES = os.getenv("ROTATE_STYLES", "true").lower() in ("true", "1", "yes")

@@ -167,12 +167,17 @@ class InstagramUploader:
         public_video_url: str,
         title: str,
         script: str,
-        scheduled_publish_time: Optional[int] = None
+        scheduled_publish_time: Optional[int] = None,
+        immediate: bool = False
     ) -> Optional[str]:
         """Unified publisher: tries Graph API first (with IST scheduling if requested), then instagrapi."""
         if not self.enabled:
             db.log("INFO", "Instagram", "Instagram auto-post is disabled in config.")
             return None
+
+        if immediate:
+            scheduled_publish_time = None
+            db.log("INFO", "Instagram", "Direct Immediate Publication requested (No fixed time slots).")
 
         caption = (
             f"🚨 {title}\n\n"

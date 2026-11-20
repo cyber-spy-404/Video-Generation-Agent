@@ -427,5 +427,95 @@ class PipelineOrchestrator:
         db.log("INFO", "Pipeline", f"Re-initiating production for failed Job #{job_id} ('{article['title'][:50]}')...")
         return self.process_article(article, bypass_daily_cap=True, existing_job_id=job_id)
 
+    def publish_video_to_platform(self, job_id: int, platform: str = "all", immediate: bool = True) -> Dict[str, Any]:
+        """
+        Manually publishes an existing video to a specific platform (or all platforms)
+        IMMEDIATELY without fixed schedule times.
+        platform: 'youtube' | 'instagram' | 'facebook' | 'all'
+        """
+        from config import VIDEOS_DIR
+        video = db.get_video(job_id)
+        if not video:
+            return {"status": "error", "message": f"Job #{job_id} not found."}
+
+        # Determine video files
+        video_path = video.get("video_path")
+        if not video_path or not os.path.exists(video_path):
+            video_path = str(VIDEOS_DIR / f"short_{job_id}.mp4")
+
+        ig_video_path = str(VIDEOS_DIR / f"short_instagram_{job_id}.mp4")
+        if not os.path.exists(ig_video_path):
+            ig_video_path = video_path
+
+        if not os.path.exists(video_path):
+            return {
+                "status": "error",
+                "message": f"Rendered video short_{job_id}.mp4 not found on server. Try clicking 'Re-initiate' first."
+            }
+
+        video_title = video.get("title", "The Spy Cyber Security Report")
+        script_text = video.get("script", "")
+        description = f"{script_text}\n\n#TheSpy #Shorts #CyberSecurity #Tech #AI #EthicalHacking"
+        tags = ["thespy", "cybersecurity", "shorts", "tech", "ai", "hacking"]
+        hindi_caption = f"🚨 {video_title}\n\n{script_text[:350]}...\n\n#TheSpy #CyberSecurity #Shorts #Tech #Reels"
+
+        # Ensure cloud storage URL exists (required by Meta Graph API)
+        storage_url = video.get("storage_url")
+        if not storage_url or not storage_url.startswith("http"):
+            db.log("INFO", "Pipeline", f"Uploading short_{job_id}.mp4 to cloud storage for Meta Graph API...")
+            storage_url = storage_uploader.upload_video(video_path, video_title, "Cybersecurity")
+            if storage_url:
+                db.update_video(job_id, storage_url=storage_url)
+
+        ig_storage_url = storage_url
+        if ig_video_path != video_path and os.path.exists(ig_video_path):
+            db.log("INFO", "Pipeline", f"Ensuring Instagram Hinglish video is uploaded to cloud storage...")
+            uploaded_ig = storage_uploader.upload_video(ig_video_path, f"{video_title} (Hinglish)", "Cybersecurity")
+            if uploaded_ig:
+                ig_storage_url = uploaded_ig
+
+        results = {}
+        target = platform.lower().strip()
+
+        # 1. YouTube
+        if target in ("youtube", "all", "both"):
+            db.log("INFO", "Pipeline", f"Manual immediate upload: Job #{job_id} -> YouTube Shorts...")
+            yt_res = youtube_uploader.upload_short(video_path, video_title, description, tags, immediate=immediate)
+            if yt_res and yt_res.get("url"):
+                yt_url = yt_res["url"]
+                db.update_video(job_id, youtube_id=yt_res.get("id"), youtube_url=yt_url)
+                results["youtube"] = yt_url
+            else:
+                results["youtube"] = "Failed (check YouTube credentials or logs)"
+
+        # 2. Instagram
+        if target in ("instagram", "all", "both"):
+            db.log("INFO", "Pipeline", f"Manual immediate upload: Job #{job_id} -> Instagram Reels...")
+            ig_res = instagram_uploader.post_reel(ig_video_path, ig_storage_url, video_title, hindi_caption, immediate=immediate)
+            if ig_res:
+                db.update_video(job_id, instagram_url=ig_res)
+                results["instagram"] = ig_res
+            else:
+                results["instagram"] = "Failed (check Instagram credentials or logs)"
+
+        # 3. Facebook
+        if target in ("facebook", "all", "both"):
+            db.log("INFO", "Pipeline", f"Manual immediate upload: Job #{job_id} -> Facebook Page Reels...")
+            fb_res = facebook_uploader.post_video_reel(ig_video_path, ig_storage_url, video_title, hindi_caption, immediate=immediate)
+            if fb_res:
+                db.update_video(job_id, facebook_url=fb_res)
+                results["facebook"] = fb_res
+            else:
+                results["facebook"] = "Failed (check Facebook credentials or logs)"
+
+        db.log("INFO", "Pipeline", f"Manual publish finished for Job #{job_id}: {results}")
+        return {
+            "status": "success",
+            "job_id": job_id,
+            "platform": target,
+            "results": results,
+            "message": f"Manual immediate publish complete for Job #{job_id} ({target.upper()})!"
+        }
+
 pipeline = PipelineOrchestrator()
 

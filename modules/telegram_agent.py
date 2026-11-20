@@ -82,6 +82,7 @@ class TelegramAIAgent:
                 "• *'resume'* or `/resume` — Unpause and resume scheduled publishing\n"
                 "• *'preview'* — Upload the latest MP4 video directly to this chat\n"
                 "• *'retry <job_id>'* or `/retry <job_id>` — Re-initiate and retry a failed video job\n"
+                "• *'post <job_id> youtube/instagram/facebook/all'* — Manual immediate post without fixed times\n"
                 "• *'delete <job_id>'* or `/delete <job_id>` — Delete a video job and remove its files\n"
                 "• *'repost adding <note>'* — Re-upload or edit a video with custom hashtags/text\n\n"
                 "_You can speak to me in plain English! Example: 'make video on Pegasus spyware'_"
@@ -210,6 +211,58 @@ class TelegramAIAgent:
                     self.send_message(f"⚠️ *Retry worker exception for Job #{jid}:* {ex}")
 
             threading.Thread(target=retry_worker, args=(job_id,), daemon=True).start()
+            return
+
+        # 4D. Manual Immediate Post to Platform without fixed times ("post <id> youtube", "/post_yt <id>", "post <id> instagram", etc.)
+        manual_match = re.search(
+            r"(?:/post_?(yt|ig|fb|youtube|instagram|facebook|all)\s+(\d+)|(?:post|publish)\s+(?:job\s+|video\s+)?(\d+)\s+(?:to\s+)?(youtube|instagram|facebook|all|yt|ig|fb))",
+            text_lower
+        )
+        if manual_match:
+            platform_alias = manual_match.group(1) or manual_match.group(4)
+            job_id_str = manual_match.group(2) or manual_match.group(3)
+            job_id = int(job_id_str)
+
+            alias_map = {
+                "yt": "youtube",
+                "youtube": "youtube",
+                "ig": "instagram",
+                "instagram": "instagram",
+                "fb": "facebook",
+                "facebook": "facebook",
+                "all": "all"
+            }
+            platform = alias_map.get(platform_alias, "all")
+
+            video = db.get_video(job_id)
+            if not video:
+                self.send_message(f"❌ *Video Job #{job_id} not found in database.*")
+                return
+
+            self.send_message(
+                f"🚀 *Publishing Job #{job_id} to {platform.upper()} Immediately!*\n\n"
+                f"• *Title:* {video.get('title', '--')}\n"
+                f"• *Mode:* Direct live publication (Bypassing fixed schedule slots)\n"
+                f"• Uploading in background, standing by for confirmation..."
+            )
+
+            def manual_pub_worker(jid: int, plat: str):
+                from modules.pipeline import pipeline
+                try:
+                    res = pipeline.publish_video_to_platform(jid, platform=plat, immediate=True)
+                    if res.get("status") == "success":
+                        res_dict = res.get("results", {})
+                        urls_txt = "\n".join([f"• *{k.upper()}:* {v}" for k, v in res_dict.items()])
+                        self.send_message(
+                            f"✅ *Job #{jid} Published to {plat.upper()}!*\n\n"
+                            f"{urls_txt or res.get('message', '')}"
+                        )
+                    else:
+                        self.send_message(f"⚠️ *Publishing Job #{jid} encountered an issue:*\n{res.get('message')}")
+                except Exception as ex:
+                    self.send_message(f"⚠️ *Manual publish worker exception for Job #{jid}:* {ex}")
+
+            threading.Thread(target=manual_pub_worker, args=(job_id, platform), daemon=True).start()
             return
 
         # 5. Custom Topic / Prompt Creation ("make video on <topic>", "/prompt <topic>", "/create <topic>")

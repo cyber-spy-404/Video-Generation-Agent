@@ -75,11 +75,13 @@ class YouTubeUploader:
         title: str,
         description: str,
         tags: list,
-        publish_at: Optional[str] = None
+        publish_at: Optional[str] = None,
+        immediate: bool = False
     ) -> Optional[Dict[str, Any]]:
         """
         Uploads vertical video directly to YouTube Studio as a YouTube Short.
-        Supports automated UTC Peak Timing scheduling (e.g. 15:00 UTC / 20:00 UTC).
+        Supports automated UTC Peak Timing scheduling (e.g. 15:00 UTC / 20:00 UTC)
+        or immediate direct publishing when immediate=True.
         Returns: {"id": video_id, "url": f"https://youtube.com/shorts/{video_id}", "publish_at": publish_at, "scheduled": bool}
         """
         if not self.enabled:
@@ -103,7 +105,11 @@ class YouTubeUploader:
         schedule_summary = "Immediate Public"
         is_scheduled = False
 
-        if target_publish_at is None and self.schedule_mode == "scheduled":
+        if immediate:
+            target_publish_at = None
+            schedule_summary = "Immediate Public (Manual Override)"
+            is_scheduled = False
+        elif target_publish_at is None and self.schedule_mode == "scheduled":
             _, auto_iso, schedule_summary = timing_manager.get_next_youtube_utc_slot(self.post_times_utc)
             target_publish_at = auto_iso
 
