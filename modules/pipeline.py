@@ -50,7 +50,7 @@ class PipelineOrchestrator:
         try:
             # 1. Generate High-Retention Viral Script
             db.update_video(job_id, status="scripting")
-            script_data = scriptwriter.generate_script(article)
+            script_data = scriptwriter.generate_script(article, job_id=job_id)
             script_text = script_data["script"]
             hook = script_data.get("hook", "")
             video_title = script_data.get("title", title)
@@ -112,7 +112,7 @@ class PipelineOrchestrator:
             hindi_caption = script_text
             try:
                 db.log("INFO", "Pipeline", f"Crafting Hindi Voice + Hinglish Subtitles for Instagram Reels (Job #{job_id})...")
-                hindi_script = scriptwriter.generate_hindi_hinglish_script(script_data, article)
+                hindi_script = scriptwriter.generate_hindi_hinglish_script(script_data, article, job_id=job_id)
                 audio_hi_path, timings_hi = voice_engine.generate_speech(
                     hindi_script["hindi_speech"],
                     job_id=int(f"88{job_id}"),
