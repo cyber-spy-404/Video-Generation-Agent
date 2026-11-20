@@ -41,21 +41,34 @@ class TelegramAIAgent:
             return False
 
     def send_video_preview(self, video_path: str, caption: str) -> bool:
-        """Sends an MP4 video preview directly to the owner in Telegram."""
+        """Sends an MP4 video preview directly to the owner in Telegram with buffer & retry."""
+        import os
         if not self.token or not self.owner_chat_id:
+            return False
+        if not os.path.exists(video_path):
             return False
         try:
             with open(video_path, "rb") as vf:
-                resp = requests.post(
-                    f"{self.api_base}/sendVideo",
-                    data={"chat_id": self.owner_chat_id, "caption": caption[:1024]},
-                    files={"video": vf},
-                    timeout=120
-                )
-            return resp.status_code == 200
+                vbytes = vf.read()
+            file_name = os.path.basename(video_path)
+            files = {"video": (file_name, vbytes, "video/mp4")}
+
+            for attempt in range(1, 3):
+                try:
+                    resp = requests.post(
+                        f"{self.api_base}/sendVideo",
+                        data={"chat_id": self.owner_chat_id, "caption": caption[:1024]},
+                        files=files,
+                        timeout=(30, 300)
+                    )
+                    if resp.status_code == 200:
+                        return True
+                except Exception as e:
+                    db.log("WARNING", "TelegramAgent", f"send_video_preview attempt {attempt} failed: {e}")
+                    time.sleep(3)
         except Exception as e:
             db.log("WARNING", "TelegramAgent", f"Failed to send video preview: {e}")
-            return False
+        return False
 
     def handle_incoming_message(self, message: Dict[str, Any]):
         """Processes user instructions from Telegram and triggers actions."""
