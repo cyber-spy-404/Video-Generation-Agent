@@ -48,6 +48,8 @@ Output format must be valid JSON:
 }
 """
 
+GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+
 class ScriptWriter:
     def __init__(self):
         self.keys: List[str] = list(GEMINI_API_KEYS)
@@ -70,8 +72,7 @@ class ScriptWriter:
         )
 
     def generate_with_gemini_key(self, article: Dict[str, Any], api_key: str) -> Dict[str, Any]:
-        """Calls Gemini API using a specific key."""
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        """Calls Gemini API using a specific key with automatic model fallback."""
         cat = article.get("category", "Cybersecurity")
         is_ai = "ai" in cat.lower() or "frontier" in cat.lower()
         active_prompt = VIRAL_PROMPT_AI if is_ai else VIRAL_PROMPT_CYBER
@@ -96,15 +97,21 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
             }
         }
 
-        resp = requests.post(url, json=payload, timeout=25)
-        if resp.status_code == 200:
-            data = resp.json()
-            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-            res = json.loads(raw_text)
-            res["key_used"] = f"Gemini Key #{self.current_idx + 1} (...{api_key[-6:] if len(api_key) > 6 else ''})"
-            return res
-        else:
-            raise RuntimeError(f"HTTP {resp.status_code}: {resp.text}")
+        last_err = ""
+        for model in GEMINI_MODELS:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            try:
+                resp = requests.post(url, json=payload, timeout=25)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                    raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text.strip(), flags=re.MULTILINE)
+                    raw_text = re.sub(r"```\s*$", "", raw_text.strip(), flags=re.MULTILINE)
+                    return json.loads(raw_text)
+                last_err = f"{model} returned HTTP {resp.status_code}: {resp.text[:150]}"
+            except Exception as e:
+                last_err = str(e)
+        raise RuntimeError(last_err)
 
     def generate_procedural_fallback(self, article: Dict[str, Any]) -> Dict[str, Any]:
         """High-retention fallback scriptwriter when no API key is available or all keys exhausted."""
@@ -350,24 +357,27 @@ Output pure JSON only:
             attempts = 0
             while attempts < len(self.keys):
                 api_key = self.get_active_key()
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "generationConfig": {"temperature": 0.7, "responseMimeType": "application/json"}
-                }
-                try:
-                    resp = requests.post(url, json=payload, timeout=25)
-                    if resp.status_code == 200:
-                        data = resp.json()
-                        raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
-                        res = json.loads(raw_text)
-                        db.log("INFO", "ScriptWriter", f"Hindi/Hinglish script generated with Key #{self.current_idx + 1}")
-                        return res
-                    else:
-                        raise RuntimeError(f"HTTP {resp.status_code}")
-                except Exception as e:
-                    self.rotate_to_next_key(reason=str(e)[:60])
-                    attempts += 1
+                success = False
+                for model in GEMINI_MODELS:
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+                    payload = {
+                        "contents": [{"parts": [{"text": prompt}]}],
+                        "generationConfig": {"temperature": 0.7, "responseMimeType": "application/json"}
+                    }
+                    try:
+                        resp = requests.post(url, json=payload, timeout=25)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            raw_text = data["candidates"][0]["content"]["parts"][0]["text"]
+                            raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text.strip(), flags=re.MULTILINE)
+                            raw_text = re.sub(r"```\s*$", "", raw_text.strip(), flags=re.MULTILINE)
+                            res = json.loads(raw_text)
+                            db.log("INFO", "ScriptWriter", f"Hindi/Hinglish script generated with Key #{self.current_idx + 1} ({model})")
+                            return res
+                    except Exception:
+                        pass
+                self.rotate_to_next_key(reason="Models exhausted on key")
+                attempts += 1
 
         # Fallback procedural generator for Hindi & Hinglish
         title = article.get("title", "Critical Vulnerability")
