@@ -19,6 +19,10 @@ class FacebookUploader:
         self.schedule_mode = INSTAGRAM_FB_SCHEDULE_MODE
         self.post_times_ist = INSTAGRAM_FB_POST_TIMES_IST
 
+        # Proactively ensure we use direct Page Access Token if a User Token was supplied
+        if self.enabled and self.page_id and self.page_access_token:
+            self._attempt_resolve_page_token()
+
     def _attempt_resolve_page_token(self) -> Optional[str]:
         """
         If the configured access token is a User Token that lacks direct Page write permissions,

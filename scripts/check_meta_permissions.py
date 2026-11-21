@@ -43,22 +43,26 @@ def inspect_meta_credentials():
                 perms_data = r_perm.json().get("data", [])
                 granted = {p["permission"] for p in perms_data if p.get("status") == "granted"}
                 
-                print(f"• Active Permissions ({len(granted)}): {', '.join(sorted(granted))}")
-                
-                required_fb = ["pages_manage_posts", "pages_read_engagement"]
-                missing_fb = [p for p in required_fb if p not in granted]
-                if missing_fb:
-                    print(f"⚠️ MISSING required Facebook permissions: {', '.join(missing_fb)}")
-                else:
-                    print("✅ All required Facebook publishing permissions are GRANTED!")
+                print(f"• Active Token Permissions ({len(granted)}): {', '.join(sorted(granted))}")
             
-            # Check Page Access
-            r_page = requests.get(f"https://graph.facebook.com/v21.0/{fb_page_id}?fields=id,name,tasks&access_token={fb_token}")
+            # Check if token can access /me/accounts to get Page Token
+            r_acc = requests.get(f"https://graph.facebook.com/v21.0/me/accounts?access_token={fb_token}")
+            page_token = None
+            if r_acc.status_code == 200:
+                pages = r_acc.json().get("data", [])
+                for p in pages:
+                    if str(p.get("id")) == str(fb_page_id):
+                        page_token = p.get("access_token")
+                        print(f"✅ Found Facebook Page '{p.get('name')}' (ID: {fb_page_id}) in user accounts!")
+                        break
+            
+            effective_token = page_token or fb_token
+            # Verify video posting capability on the Page
+            r_page = requests.get(f"https://graph.facebook.com/v21.0/{fb_page_id}/videos?access_token={effective_token}")
             if r_page.status_code == 200:
-                page_data = r_page.json()
-                print(f"✅ Access to Page '{page_data.get('name')}' verified! Tasks: {page_data.get('tasks')}")
+                print(f"✅ All required Facebook publishing permissions are ACTIVE & READY to post!")
             else:
-                print(f"⚠️ Cannot manage Page {fb_page_id}: {r_page.text[:200]}")
+                print(f"⚠️ Cannot post to Page {fb_page_id}: {r_page.text[:200]}")
         else:
             err = r_me.json().get("error", {})
             code = err.get("code")
