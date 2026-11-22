@@ -198,7 +198,7 @@ VIRAL_HOOK_ARCHETYPES_AI = [
     }
 ]
 
-GEMINI_MODELS = ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-flash-latest"]
+GEMINI_MODELS = ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.5-flash", "gemini-pro-latest", "gemini-flash-lite-latest"]
 
 class ScriptWriter:
     def __init__(self):
@@ -502,19 +502,28 @@ Write the viral short script according to the mandatory rules. Output pure JSON 
             f"Generating Hindi Voiceover & Hinglish Subtitles for Instagram Reels (Hook #{hook_archetype['id']}: {hook_archetype['name']})..."
         )
         
-        prompt = f"""You are a viral Hindi/Hinglish Instagram Reels creator specializing in Cybersecurity and Ethical Hacking.
-Convert this English tech short script into Hindi and Hinglish.
+        prompt = f"""You are a top viral Indian cybersecurity creator (like alex.cyberx) producing high-retention Instagram Reels and YouTube Shorts.
+Your signature voice style is punchy, conversational, and speaks directly to the viewer in modern colloquial Hinglish (e.g. "Fake account bana ke...", "Agar tum sochte ho...", "Suno, cyber cell tum tak kaise pahunchti hai:").
+
+Convert this tech short script into authentic spoken Hindi & kinetic Hinglish subtitles:
 
 MANDATORY ROTATING HOOK (MUST be the opening sentence):
 Hindi Hook (Opening): "{hook_archetype['pattern_hi']}"
 Hinglish Hook (Opening): "{hook_archetype['pattern_hinglish']}"
 
 Rules:
-1. 'hindi_speech': Natural, conversational spoken Hindi written in Devanagari for text-to-speech voiceover. Start with the Hindi Hook above or a close variation. Keep tech words in common parlance (hackers, server, login bypass, root access, exploit, firewall, patch).
-2. 'hinglish_subtitles': The EXACT SAME spoken Hindi sentences, but written in Roman/Latin script (Hinglish) word-for-word. Start with the Hinglish Hook above.
+1. 'hindi_speech': Natural, conversational spoken Hindi written in Devanagari for text-to-speech voiceover.
+   - Start directly with the Hindi Hook above or natural variation.
+   - Use colloquial creator phrasing: "Suno", "Dekho", "Agar aap sochte ho ki...", "Lekin sach yeh hai...".
+   - Keep everyday tech terms in English parlance (hackers, server, login, bypass, root access, exploit, firewall, IP address, patch).
+   - Fast, engaging flow without boring academic filler.
+   - Conclude with actionable safety advice and "Cyber threats se safe rehne ke liye The Spy ko follow karein."
+2. 'hinglish_subtitles': The EXACT SAME spoken sentences, but written in Roman/Latin script (Hinglish) word-for-word.
+   - Must match the spoken words 100% so subtitles sync cleanly.
+   - Start directly with the Hinglish Hook above.
 Example:
-hindi_speech: "एक छोटी सी भूल ने पचास मिलियन बैंक खातों को लीक कर दिया।"
-hinglish_subtitles: "Ek choti si bhool ne 50 million bank accounts ko leak kar diya."
+hindi_speech: "एक छोटी सी भूल ने पचास मिलियन बैंक खातों को लीक कर दिया। हैकर्स ने सीधे डेटाबेस पर अटैक किया।"
+hinglish_subtitles: "Ek choti si bhool ne 50 million bank accounts ko leak kar diya. Hackers ne seedhe database par attack kiya."
 
 English Script:
 {english_script.get('script', '')}

@@ -128,7 +128,7 @@ class PipelineOrchestrator:
                     hindi_script["hindi_speech"],
                     job_id=int(f"88{job_id}"),
                     voice="hi-IN-MadhurNeural",
-                    rate="+15%"
+                    rate=config.VOICE_RATE
                 )
                 duration_hi = video_compositor.get_audio_duration(audio_hi_path)
                 hinglish_timings = subtitle_engine.align_text_to_word_timings(

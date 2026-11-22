@@ -61,8 +61,8 @@ INSTAGRAM_FB_SCHEDULE_MODE = os.getenv("INSTAGRAM_FB_SCHEDULE_MODE", "immediate"
 
 # Voice & Typography Dynamic Rotation (Rotates voices, fonts & neon accents daily & per video)
 ROTATE_STYLES = os.getenv("ROTATE_STYLES", "true").lower() in ("true", "1", "yes")
-VOICE_NAME = os.getenv("VOICE_NAME", "en-US-ChristopherNeural")
-VOICE_RATE = os.getenv("VOICE_RATE", "+15%")
+VOICE_NAME = os.getenv("VOICE_NAME", "hi-IN-MadhurNeural")
+VOICE_RATE = os.getenv("VOICE_RATE", "+20%")
 VOICE_PITCH = os.getenv("VOICE_PITCH", "+0Hz")
 
 # Content Topics

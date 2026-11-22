@@ -133,6 +133,12 @@ class StyleRotator:
         idx = (day_of_year * 3 + int(job_id)) % len(self.presets)
         preset = dict(self.presets[idx])
 
+        # Channel signature voice override from config (e.g. hi-IN-MadhurNeural at +20%)
+        if VOICE_NAME:
+            preset["voice"] = VOICE_NAME
+            preset["voice_rate"] = VOICE_RATE
+            preset["voice_pitch"] = VOICE_PITCH
+
         font_filename = preset["font_file"]
         font_path = FONTS_DIR / font_filename
         if not font_path.exists():
