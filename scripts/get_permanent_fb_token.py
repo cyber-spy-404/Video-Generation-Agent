@@ -58,14 +58,25 @@ def exchange_for_permanent_page_token(app_id: str, app_secret: str, short_lived_
     print("=" * 60)
 
 if __name__ == "__main__":
-    app_id = input("Enter Meta App ID (default: 954612557513274): ").strip() or "954612557513274"
-    app_secret = input("Enter Meta App Secret (from App settings -> Basic): ").strip()
-    if not app_secret:
-        print("Meta App Secret is required.")
-        sys.exit(1)
-    short_token = input("Enter Short-Lived User Token from Graph API Explorer: ").strip()
-    if not short_token:
-        print("Short-lived token is required.")
-        sys.exit(1)
+    if len(sys.argv) >= 3:
+        if len(sys.argv) == 3:
+            app_id = "954612557513274"
+            app_secret = sys.argv[1].strip()
+            short_token = sys.argv[2].strip()
+        else:
+            app_id = sys.argv[1].strip()
+            app_secret = sys.argv[2].strip()
+            short_token = sys.argv[3].strip()
+        exchange_for_permanent_page_token(app_id, app_secret, short_token)
+    else:
+        app_id = input("Enter Meta App ID (default: 954612557513274): ").strip() or "954612557513274"
+        app_secret = input("Enter Meta App Secret (from App settings -> Basic): ").strip()
+        if not app_secret:
+            print("Meta App Secret is required.")
+            sys.exit(1)
+        short_token = input("Enter Short-Lived User Token from Graph API Explorer: ").strip()
+        if not short_token:
+            print("Short-lived token is required.")
+            sys.exit(1)
 
-    exchange_for_permanent_page_token(app_id, app_secret, short_token)
+        exchange_for_permanent_page_token(app_id, app_secret, short_token)
