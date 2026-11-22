@@ -2,7 +2,7 @@ import os
 import concurrent.futures
 from typing import Dict, Any, Optional
 import config
-from config import VOICE_NAME
+from config import VOICE_NAME, MAX_VIDEOS_PER_DAY
 from modules.database import db
 from modules.researcher import researcher
 from modules.scriptwriter import scriptwriter
@@ -389,7 +389,7 @@ class PipelineOrchestrator:
             if res:
                 completed += 1
 
-        db.log("INFO", "Pipeline", f"Cycle completed. Successfully finished {completed}/{len(pending)} videos (Daily total: {completed_today + completed}/{MAX_VIDEOS_PER_DAY}).")
+        db.log("INFO", "Pipeline", f"Cycle completed. Successfully finished {completed}/{len(pending)} videos (Daily total: {completed_today + completed}/{config.MAX_VIDEOS_PER_DAY}).")
         return completed
 
     def create_video_from_prompt(self, prompt: str, bypass_daily_cap: bool = True) -> Optional[Dict[str, Any]]:
